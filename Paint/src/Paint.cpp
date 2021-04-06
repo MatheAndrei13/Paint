@@ -21,7 +21,7 @@ Paint::~Paint() {
 
 void Paint::DrawCanvas() {
 	if (updateCanvas) {
-		DrawBuffer(canvas, canvasRegion);
+		DrawBuffer(canvas, { (short)canvasSize.x, (short)canvasSize.y }, canvasRegion);
 		updateCanvas = false;
 	}
 }

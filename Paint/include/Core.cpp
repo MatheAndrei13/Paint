@@ -227,7 +227,8 @@ void ConsoleApp::GetInput() {
 	keyboardInputThread.join();
 
 	// Free Input Buffer
-	delete[] inputBuffer;
+	if (inputBuffer != nullptr)
+		delete[] inputBuffer;
 }
 
 void ConsoleApp::GetMouseInput(INPUT_RECORD* inputBuffer, DWORD numEvents) {
@@ -318,9 +319,9 @@ void ConsoleApp::Fill(Vec2 vec2_0, Vec2 vec2_1, wchar_t glyph, unsigned char col
 				SetPixel(x, y, glyph, color);
 }
 
-void ConsoleApp::DrawBuffer(CHAR_INFO* buffer, SMALL_RECT region) {
-	for (short x = region.Left; x <= region.Right; ++x)
-		for (short y = region.Top; y <= region.Bottom; ++y)
+void ConsoleApp::DrawBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT region) {
+	for (short x = 0; x < bufferSize.X && x + region.Left <= region.Right; ++x)
+		for (short y = 0; y <= bufferSize.Y && y + region.Top <= region.Bottom; ++y)
 			if (!OutOfBounds(x, y))
 				SetPixel(x, y, buffer[x + screenSize.X * y].Char.UnicodeChar, buffer[x + screenSize.X * y].Attributes);
 }

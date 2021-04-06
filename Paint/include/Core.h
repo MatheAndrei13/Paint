@@ -72,7 +72,7 @@ public:
 	void Fill(int x0, int y0, int x1, int y1, wchar_t glyph, unsigned char color);
 	void Fill(Vec2 vec2_0, Vec2 vec2_1, wchar_t glyph, unsigned char color);
 
-	void DrawBuffer(CHAR_INFO* buffer, SMALL_RECT region);
+	void DrawBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT region);
 
 	void ClearScreen();
 };
