@@ -30,11 +30,15 @@ void Paint::ChangeGlyph(wchar_t glyph) { this->glyph = glyph; }
 void Paint::ChangeFGColor(Color color) { fgColor = color; }
 void Paint::ChangeBGColor(Color color) { bgColor = color; }
 
-void Paint::SwitchFGColor() {
+void Paint::NextFGColor() {
 	if (++fgColor > 0x000F)
 		fgColor = 0;
 }
-void Paint::SwitchBGColor() {
+void Paint::PreviousFGColor() {
+	if (--fgColor < 0x0000)
+		fgColor = 0x000F;
+}
+void Paint::NextBGColor() {
 	if (bgColor == 0x0000)
 		bgColor = 0x0010;
 	else
@@ -42,6 +46,15 @@ void Paint::SwitchBGColor() {
 
 	if (bgColor > 0x00F0)
 		bgColor = 0x0000;
+}
+void Paint::PreviousBGColor() {
+	if (bgColor == 0x0010)
+		bgColor = 0x0000;
+	else
+		bgColor -= 0x0010;
+
+	if (bgColor < 0x0000)
+		bgColor = 0x00F0;
 }
 
 bool Paint::inCanvas(int x, int y) const { return (x >= 0 && y >= 0) && (x < canvasSize.x&& y < canvasSize.y); }

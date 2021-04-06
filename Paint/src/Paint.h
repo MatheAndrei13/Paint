@@ -67,10 +67,14 @@ private:
 				DrawCanvas();
 			}
 
-		if (KeyReleased('E'))
-			SwitchFGColor();
-		if (KeyReleased('Q'))
-			SwitchBGColor();
+		if (KeyReleased(']'))
+			NextFGColor();
+		if (KeyReleased('['))
+			PreviousFGColor();
+		if (KeyReleased('D'))
+			NextBGColor();
+		if (KeyReleased('A'))
+			PreviousBGColor();
 
 		if (KeyReleased('P'))
 			tool = TOOL::Pencil;
@@ -90,8 +94,10 @@ private:
 	void ChangeFGColor(Color);
 	void ChangeBGColor(Color);
 
-	void SwitchFGColor();
-	void SwitchBGColor();
+	void NextFGColor();
+	void PreviousFGColor();
+	void NextBGColor();
+	void PreviousBGColor();
 
 	bool inCanvas(int x, int y) const;
 	bool inCanvas(Vec2) const;
