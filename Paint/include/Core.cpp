@@ -323,7 +323,7 @@ void ConsoleApp::DrawBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT regi
 	for (short x = 0; x < bufferSize.X && x + region.Left <= region.Right; ++x)
 		for (short y = 0; y <= bufferSize.Y && y + region.Top <= region.Bottom; ++y)
 			if (!OutOfBounds(x, y))
-				SetPixel(x, y, buffer[x + screenSize.X * y].Char.UnicodeChar, buffer[x + screenSize.X * y].Attributes);
+				SetPixel(x + region.Left, y + region.Top, buffer[x + screenSize.X * y].Char.UnicodeChar, (unsigned char)buffer[x + screenSize.X * y].Attributes);
 }
 
 void ConsoleApp::ClearScreen() {

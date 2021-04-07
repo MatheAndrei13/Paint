@@ -26,7 +26,7 @@ enum COLOR : unsigned char {
 	BG_RED = 0x0040,
 	BG_PURPLE = 0x0050,
 	BG_YELLOW = 0x0060,
-	BG_While = 0x0070,
+	BG_WHITE = 0x0070,
 	BG_GRAY = 0x0080,
 	BG_LIGHT_BLUE = 0x0090,
 	BG_LIGHT_GREEN = 0x00A0,

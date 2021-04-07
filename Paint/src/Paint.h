@@ -26,6 +26,30 @@ private:
 	Vec2 clickPos;
 	Vec2 lastPos;
 
+	struct Panel {
+		CHAR_INFO* buffer;
+		Vec2 size;
+		SMALL_RECT region;
+
+		bool update = false;
+
+		Color color;
+		const std::wstring previewText = L"PREVIEW:";
+		Vec2 previewTextPos;
+		const std::wstring fgColorText = L"FG:";
+		Vec2 fgColorTextPos;
+		const std::wstring bgColorText = L"BG:";
+		Vec2 bgColorTextPos;
+		const std::wstring toolText = L"TOOL:";
+		std::wstring toolName;
+		Vec2 toolTextPos;
+
+		Panel();
+		~Panel();
+
+		void DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL tool);
+	} panel;
+
 public:
 	Paint();
 	~Paint();
@@ -33,15 +57,30 @@ public:
 
 private:
 	void OnCreate() {
+		// Canvas init
 		canvas = new CHAR_INFO[GetScreenWidth() * GetScreenHeight()];
-		canvasSize = Vec2(GetScreenWidth(), GetScreenHeight());
-		canvasRegion = { 0, 0, (short)canvasSize.x - 1, (short)canvasSize.y - 1 };
+		canvasSize = Vec2(GetScreenWidth(), GetScreenHeight() - 1);
+		canvasRegion = { 0, 0, (short)GetScreenWidth() - 1, (short)GetScreenHeight() - 2 };
 		ClearCanvas();
 		updateCanvas = true;
+
+		// Panel init
+		panel.buffer = new CHAR_INFO[GetScreenWidth() * 1];
+		panel.size = Vec2(GetScreenWidth(), 1);
+		panel.region = { 0, (short)GetScreenHeight() - 1, (short)GetScreenWidth() - 1, (short)GetScreenHeight() - 1 };
+		
+		panel.color = 0x0070;
+		panel.previewTextPos = { 2, 0 };
+		panel.fgColorTextPos = { 19, 0 };
+		panel.bgColorTextPos = { 13, 0 };
+		panel.toolTextPos = { 25, 0 };
+
+		panel.DrawPanel(glyph, fgColor, bgColor, tool);
+		panel.update = true;
 	}
 
 	void OnUpdate() {
-		DrawCanvas();
+		DrawVisualElements();
 
 		if (KeyPressed(VK_LBUTTON)) {
 			if (resetClickPos) {
@@ -64,35 +103,36 @@ private:
 				if (tool == TOOL::Rectangle)
 					Rectangle(clickPos, lastPos, NULL, fgColor | bgColor);
 				resetClickPos = true;
-				DrawCanvas();
+				DrawVisualElements();
 			}
 
-		if (KeyReleased(']'))
+		if (KeyReleased(VK_OEM_6))
 			NextFGColor();
-		if (KeyReleased('['))
+		if (KeyReleased(VK_OEM_4))
 			PreviousFGColor();
-		if (KeyReleased('D'))
+		if (KeyReleased(VK_OEM_7))
 			NextBGColor();
-		if (KeyReleased('A'))
+		if (KeyReleased(VK_OEM_1))
 			PreviousBGColor();
 
 		if (KeyReleased('P'))
-			tool = TOOL::Pencil;
+			ChangeTool(TOOL::Pencil);
 		if (KeyReleased('L'))
-			tool = TOOL::Line;
+			ChangeTool(TOOL::Line);
 		if (KeyReleased('R'))
-			tool = TOOL::Rectangle;
+			ChangeTool(TOOL::Rectangle);
 
 		if (KeyPressed('C'))
 			ClearCanvas();
 	}
 
 private:
-	void DrawCanvas();
+	void DrawVisualElements();
 
 	void ChangeGlyph(wchar_t);
 	void ChangeFGColor(Color);
 	void ChangeBGColor(Color);
+	void ChangeTool(TOOL);
 
 	void NextFGColor();
 	void PreviousFGColor();
