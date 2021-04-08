@@ -65,7 +65,9 @@ void Paint::ChangeTool(TOOL tool) {
 		panel.toolName = L"Line";
 	else if (tool == TOOL::Rectangle)
 		panel.toolName = L"Rectangle";
-	else
+	else if (tool == TOOL::Ellipse)
+		panel.toolName = L"Ellipse";
+	else if (tool == TOOL::Bucket)
 		panel.toolName = L"Bucket";
 
 	for (int i = 0; i < (int)panel.toolName.length(); ++i) {
@@ -259,6 +261,71 @@ void Paint::GhostRectangle(Vec2 start, Vec2 end, wchar_t glyph, Color color) {
 	updateCanvas = true;
 }
 
+void Paint::Ellipse(Vec2 start, Vec2 end, wchar_t glyph, Color color) {
+	int a = abs(end.x - start.x), b = abs(end.y - start.y), b1 = b & 1;
+	long dx = 4 * (1 - a) * b * b, dy = 4 * (b1 + 1) * a * a;
+	long err = dx + dy + b1 * a * a, e2;
+
+	if (start.x > end.x) { start.x = end.x; end.x += a; }
+	if (start.y > end.y) start.y = end.y;
+	start.y += (b + 1) / 2; end.y = start.y - b1;
+	a *= 8 * a; b1 = 8 * b * b;
+
+	do {
+		Draw(end.x, start.y, glyph, color);
+		Draw(start.x, start.y, glyph, color);
+		Draw(start.x, end.y, glyph, color);
+		Draw(end.x, end.y, glyph, color);
+		e2 = 2 * err;
+		if (e2 <= dy) { start.y++; end.y--; err += dy += a; }
+		if (e2 >= dx || 2 * err > dy) { start.x++; end.x--; err += dx += b1; }
+	} while (start.x <= end.x);
+
+	while (start.y - end.y < b) {
+		Draw(start.x - 1, start.y, glyph, color);
+		Draw(end.x + 1, start.y++, glyph, color);
+		Draw(start.x - 1, end.y, glyph, color);
+		Draw(end.x + 1, end.y--, glyph, color);
+	}
+}
+void Paint::GhostEllipse(Vec2 start, Vec2 end, wchar_t glyph, Color color) {
+	int a = abs(end.x - start.x), b = abs(end.y - start.y), b1 = b & 1;
+	long dx = 4 * (1 - a) * b * b, dy = 4 * (b1 + 1) * a * a;
+	long err = dx + dy + b1 * a * a, e2;
+
+	if (start.x > end.x) { start.x = end.x; end.x += a; }
+	if (start.y > end.y) start.y = end.y;
+	start.y += (b + 1) / 2; end.y = start.y - b1;
+	a *= 8 * a; b1 = 8 * b * b;
+
+	do {
+		if (inCanvas(end.x, start.y))
+			SetPixel(end.x, start.y, glyph, color);
+		if (inCanvas(start.x, start.y))
+			SetPixel(start.x, start.y, glyph, color);
+		if (inCanvas(start.x, end.y))
+			SetPixel(start.x, end.y, glyph, color);
+		if (inCanvas(end.x, end.y))
+			SetPixel(end.x, end.y, glyph, color);
+		e2 = 2 * err;
+		if (e2 <= dy) { start.y++; end.y--; err += dy += a; }
+		if (e2 >= dx || 2 * err > dy) { start.x++; end.x--; err += dx += b1; }
+	} while (start.x <= end.x);
+
+	while (start.y - end.y < b) {
+		if (inCanvas(start.x - 1, start.y))
+			SetPixel(start.x - 1, start.y, glyph, color);
+		if (inCanvas(end.x + 1, start.y++))
+			SetPixel(end.x + 1, start.y++, glyph, color);
+		if (inCanvas(start.x - 1, end.y))
+			SetPixel(start.x - 1, end.y, glyph, color);
+		if (inCanvas(end.x + 1, end.y--))
+			SetPixel(end.x + 1, end.y--, glyph, color);
+	}
+
+	updateCanvas = true;
+}
+
 void Paint::Bucket(Vec2 vec2, wchar_t glyph, Color color) {
 	wchar_t startingGlyph = canvas[vec2.x + canvasSize.x * vec2.y].Char.UnicodeChar;
 	Color startingColor = canvas[vec2.x + canvasSize.x * vec2.y].Attributes;
@@ -360,7 +427,9 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 		toolName = L"Line";
 	else if (tool == TOOL::Rectangle)
 		toolName = L"Rectangle";
-	else
+	else if (tool == TOOL::Ellipse)
+		toolName = L"Ellipse";
+	else if (tool == TOOL::Bucket)
 		toolName = L"Bucket";
 
 	for (int i = 0; i < (int)toolName.length(); ++i) {

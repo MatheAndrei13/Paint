@@ -17,7 +17,7 @@ private:
 	Color bgColor;
 
 	enum class TOOL {
-		Pencil, Line, Rectangle, Bucket
+		Pencil, Line, Rectangle, Ellipse, Bucket
 	} tool;
 
 	const int maxNumOfColors = 16;
@@ -96,6 +96,8 @@ private:
 					GhostLine(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
 				if (tool == TOOL::Rectangle)
 					GhostRectangle(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
+				if (tool == TOOL::Ellipse)
+					GhostEllipse(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
 				if (tool == TOOL::Bucket)
 					Bucket(GetMousePosition(), glyph, fgColor | bgColor);
 			}
@@ -108,6 +110,8 @@ private:
 					Line(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
 				if (tool == TOOL::Rectangle)
 					Rectangle(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
+				if (tool == TOOL::Ellipse)
+					Ellipse(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
 				resetFirstClickPos = true;
 				DrawVisualElements();
 			}
@@ -127,6 +131,8 @@ private:
 			ChangeTool(TOOL::Line);
 		if (KeyReleased('R'))
 			ChangeTool(TOOL::Rectangle);
+		if (KeyReleased('E'))
+			ChangeTool(TOOL::Ellipse);
 		if (KeyReleased('B'))
 			ChangeTool(TOOL::Bucket);
 
@@ -156,6 +162,8 @@ private:
 	void GhostLine(Vec2, Vec2, wchar_t, Color);
 	void Rectangle(Vec2, Vec2, wchar_t, Color);
 	void GhostRectangle(Vec2, Vec2, wchar_t, Color);
+	void Ellipse(Vec2, Vec2, wchar_t, Color);
+	void GhostEllipse(Vec2, Vec2, wchar_t, Color);
 	void Bucket(Vec2, wchar_t, Color);
 
 	void ClearCanvas();
