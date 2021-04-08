@@ -17,14 +17,14 @@ private:
 	Color bgColor;
 
 	enum class TOOL {
-		Pencil, Line, Rectangle
+		Pencil, Line, Rectangle, Bucket
 	} tool;
 
 	const int maxNumOfColors = 16;
 
-	bool resetClickPos = true;
-	Vec2 clickPos;
-	Vec2 lastPos;
+	bool resetFirstClickPos = true;
+	Vec2 firstClickPos;
+	Vec2 lastClickPos;
 
 	struct Panel {
 		CHAR_INFO* buffer;
@@ -83,30 +83,32 @@ private:
 		DrawVisualElements();
 
 		if (KeyPressed(VK_LBUTTON)) {
-			if (resetClickPos) {
-				clickPos = GetMousePosition();
-				resetClickPos = false;
+			if (resetFirstClickPos) {
+				firstClickPos = GetMousePosition();
+				resetFirstClickPos = false;
 			}
 			if (inCanvas(GetMousePosition())) {
-				lastPos = GetMousePosition();
+				lastClickPos = GetMousePosition();
 
 				if (tool == TOOL::Pencil)
 					Draw(GetMousePosition(), glyph, fgColor | bgColor);
 				if (tool == TOOL::Line)
-					GhostLine(clickPos, lastPos, NULL, fgColor | bgColor);
+					GhostLine(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
 				if (tool == TOOL::Rectangle)
-					GhostRectangle(clickPos, lastPos, NULL, fgColor | bgColor);
+					GhostRectangle(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
+				if (tool == TOOL::Bucket)
+					Bucket(GetMousePosition(), glyph, fgColor | bgColor);
 			}
 			else
-				resetClickPos = true;
+				resetFirstClickPos = true;
 		}
 		if (KeyReleased(VK_LBUTTON))
-			if (!resetClickPos) {
+			if (!resetFirstClickPos) {
 				if (tool == TOOL::Line)
-					Line(clickPos, lastPos, NULL, fgColor | bgColor);
+					Line(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
 				if (tool == TOOL::Rectangle)
-					Rectangle(clickPos, lastPos, NULL, fgColor | bgColor);
-				resetClickPos = true;
+					Rectangle(firstClickPos, lastClickPos, glyph, fgColor | bgColor);
+				resetFirstClickPos = true;
 				DrawVisualElements();
 			}
 
@@ -125,6 +127,8 @@ private:
 			ChangeTool(TOOL::Line);
 		if (KeyReleased('R'))
 			ChangeTool(TOOL::Rectangle);
+		if (KeyReleased('B'))
+			ChangeTool(TOOL::Bucket);
 
 		if (KeyPressed('C'))
 			ClearCanvas();
@@ -152,6 +156,7 @@ private:
 	void GhostLine(Vec2, Vec2, wchar_t, Color);
 	void Rectangle(Vec2, Vec2, wchar_t, Color);
 	void GhostRectangle(Vec2, Vec2, wchar_t, Color);
+	void Bucket(Vec2, wchar_t, Color);
 
 	void ClearCanvas();
 };

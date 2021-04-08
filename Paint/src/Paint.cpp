@@ -1,4 +1,5 @@
 #include "Paint.h"
+#include <queue>
 
 Paint::Paint() {
 	canvas = nullptr;
@@ -39,14 +40,14 @@ void Paint::ChangeGlyph(wchar_t glyph) {
 void Paint::ChangeFGColor(Color color) {
 	fgColor = color;
 
-	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = bgColor | fgColor;
+	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = fgColor | bgColor;
 	panel.buffer[panel.fgColorTextPos.x + panel.fgColorText.length() + panel.size.x * panel.fgColorTextPos.y].Attributes = fgColor << 4;
 	panel.update = true;
 }
 void Paint::ChangeBGColor(Color color) {
 	bgColor = color;
 
-	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = bgColor | fgColor;
+	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = fgColor | bgColor;
 	panel.buffer[panel.bgColorTextPos.x + panel.bgColorText.length() + panel.size.x * panel.bgColorTextPos.y].Attributes = bgColor;
 	panel.update = true;
 }
@@ -55,19 +56,21 @@ void Paint::ChangeTool(TOOL tool) {
 
 	for (int i = 0; i < (int)panel.toolName.length(); ++i) {
 		panel.buffer[i + panel.toolTextPos.x + panel.toolText.length() + panel.size.x * panel.toolTextPos.y].Char.UnicodeChar = NULL;
-		panel.buffer[i + panel.toolTextPos.x + panel.toolText.length() + panel.size.x * panel.toolTextPos.y].Attributes = 0x0070 | 0x0000;
+		panel.buffer[i + panel.toolTextPos.x + panel.toolText.length() + panel.size.x * panel.toolTextPos.y].Attributes = 0x0000 | 0x0070;
 	}
 
 	if (tool == TOOL::Pencil)
 		panel.toolName = L"Pencil";
 	else if (tool == TOOL::Line)
 		panel.toolName = L"Line";
-	else
+	else if (tool == TOOL::Rectangle)
 		panel.toolName = L"Rectangle";
+	else
+		panel.toolName = L"Bucket";
 
 	for (int i = 0; i < (int)panel.toolName.length(); ++i) {
 		panel.buffer[i + panel.toolTextPos.x + panel.toolText.length() + panel.size.x * panel.toolTextPos.y].Char.UnicodeChar = panel.toolName.at(i);
-		panel.buffer[i + panel.toolTextPos.x + panel.toolText.length() + panel.size.x * panel.toolTextPos.y].Attributes = 0x0070 | 0x0000;
+		panel.buffer[i + panel.toolTextPos.x + panel.toolText.length() + panel.size.x * panel.toolTextPos.y].Attributes = 0x0000 | 0x0070;
 	}
 
 	panel.update = true;
@@ -79,7 +82,7 @@ void Paint::NextFGColor() {
 	else
 		fgColor++;
 
-	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = bgColor | fgColor;
+	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = fgColor | bgColor;
 	panel.buffer[panel.fgColorTextPos.x + panel.fgColorText.length() + panel.size.x * panel.fgColorTextPos.y].Attributes = fgColor << 4;
 	panel.update = true;
 }
@@ -89,7 +92,7 @@ void Paint::PreviousFGColor() {
 	else
 		fgColor--;
 
-	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = bgColor | fgColor;
+	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = fgColor | bgColor;
 	panel.buffer[panel.fgColorTextPos.x + panel.fgColorText.length() + panel.size.x * panel.fgColorTextPos.y].Attributes = fgColor << 4;
 	panel.update = true;
 }
@@ -101,7 +104,7 @@ void Paint::NextBGColor() {
 	else
 		bgColor += 0x0010;
 
-	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = bgColor | fgColor;
+	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = fgColor | bgColor;
 	panel.buffer[panel.bgColorTextPos.x + panel.bgColorText.length() + panel.size.x * panel.bgColorTextPos.y].Attributes = bgColor;
 	panel.update = true;
 }
@@ -113,7 +116,7 @@ void Paint::PreviousBGColor() {
 	else
 		bgColor -= 0x0010;
 
-	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = bgColor | fgColor;
+	panel.buffer[panel.previewTextPos.x + panel.previewText.length() + panel.size.x * panel.previewTextPos.y].Attributes = fgColor | bgColor;
 	panel.buffer[panel.bgColorTextPos.x + panel.bgColorText.length() + panel.size.x * panel.bgColorTextPos.y].Attributes = bgColor;
 	panel.update = true;
 }
@@ -121,6 +124,7 @@ void Paint::PreviousBGColor() {
 bool Paint::inCanvas(int x, int y) const { return (x >= 0 && y >= 0) && (x < canvasSize.x&& y < canvasSize.y); }
 bool Paint::inCanvas(Vec2 vec2) const { return (vec2.x >= 0 && vec2.y >= 0) && (vec2.x < canvasSize.x&& vec2.y < canvasSize.y); }
 
+/* ####### TOOLS ####### */
 void Paint::Draw(int x, int y, wchar_t glyph, Color color) {
 	if (!inCanvas(x, y))
 		return;
@@ -255,6 +259,40 @@ void Paint::GhostRectangle(Vec2 start, Vec2 end, wchar_t glyph, Color color) {
 	updateCanvas = true;
 }
 
+void Paint::Bucket(Vec2 vec2, wchar_t glyph, Color color) {
+	wchar_t startingGlyph = canvas[vec2.x + canvasSize.x * vec2.y].Char.UnicodeChar;
+	Color startingColor = canvas[vec2.x + canvasSize.x * vec2.y].Attributes;
+
+	if (startingGlyph == glyph && startingColor == color)
+		return;
+
+	std::queue<Vec2> Q;
+
+	Q.push(vec2);
+
+	canvas[vec2.x + canvasSize.x * vec2.y].Char.UnicodeChar = glyph;
+	canvas[vec2.x + canvasSize.x * vec2.y].Attributes = color;
+
+	Vec2 directions[4] = { Vec2(0, -1), Vec2(1, 0), Vec2(0, 1), Vec2(-1, 0) };
+
+	while (!Q.empty()) {
+		vec2 = Q.front();
+
+		for (int d = 0; d < 4; ++d) {
+			Vec2 currentPos = vec2 + directions[d];
+			if (inCanvas(currentPos))
+				if (canvas[currentPos.x + canvasSize.x * currentPos.y].Char.UnicodeChar == startingGlyph && canvas[currentPos.x + canvasSize.x * currentPos.y].Attributes == startingColor) {
+					canvas[currentPos.x + canvasSize.x * currentPos.y].Char.UnicodeChar = glyph;
+					canvas[currentPos.x + canvasSize.x * currentPos.y].Attributes = color;
+					Q.push(currentPos);
+				}
+		}
+
+		Q.pop();
+	}
+
+	updateCanvas = true;
+}
 
 void Paint::ClearCanvas() {
 	for (int x = 0; x < canvasSize.x; ++x)
@@ -289,7 +327,7 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 	// Preview text
 	for (int i = 0; i < (int)previewText.length(); ++i) {
 		buffer[i + previewTextPos.x + size.x * previewTextPos.y].Char.UnicodeChar = previewText.at(i);
-		buffer[i + previewTextPos.x + size.x * previewTextPos.y].Attributes = 0x0070 | 0x0000;
+		buffer[i + previewTextPos.x + size.x * previewTextPos.y].Attributes = 0x0000 | color;
 	}
 	buffer[previewTextPos.x + previewText.length() + size.x * previewTextPos.y].Char.UnicodeChar = glyph;
 	buffer[previewTextPos.x + previewText.length() + size.x * previewTextPos.y].Attributes = bgColor | fgColor;
@@ -297,7 +335,7 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 	// Foreground text
 	for (int i = 0; i < (int)fgColorText.length(); ++i) {
 		buffer[i + fgColorTextPos.x + size.x * fgColorTextPos.y].Char.UnicodeChar = fgColorText.at(i);
-		buffer[i + fgColorTextPos.x + size.x * fgColorTextPos.y].Attributes = 0x0070 | 0x0000;
+		buffer[i + fgColorTextPos.x + size.x * fgColorTextPos.y].Attributes = 0x0000 | color;
 	}
 	buffer[fgColorTextPos.x + fgColorText.length() + size.x * fgColorTextPos.y].Char.UnicodeChar = NULL;
 	buffer[fgColorTextPos.x + fgColorText.length() + size.x * fgColorTextPos.y].Attributes = fgColor << 4;
@@ -305,7 +343,7 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 	// Background text
 	for (int i = 0; i < (int)bgColorText.length(); ++i) {
 		buffer[i + bgColorTextPos.x + size.x * bgColorTextPos.y].Char.UnicodeChar = bgColorText.at(i);
-		buffer[i + bgColorTextPos.x + size.x * bgColorTextPos.y].Attributes = 0x0070 | 0x0000;
+		buffer[i + bgColorTextPos.x + size.x * bgColorTextPos.y].Attributes = 0x0000 | color;
 	}
 	buffer[bgColorTextPos.x + bgColorText.length() + size.x * bgColorTextPos.y].Char.UnicodeChar = NULL;
 	buffer[bgColorTextPos.x + bgColorText.length() + size.x * bgColorTextPos.y].Attributes = bgColor;
@@ -313,18 +351,20 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 	// Tool Text
 	for (int i = 0; i < (int)toolText.length(); ++i) {
 		buffer[i + toolTextPos.x + size.x * toolTextPos.y].Char.UnicodeChar = toolText.at(i);
-		buffer[i + toolTextPos.x + size.x * toolTextPos.y].Attributes = 0x0070 | 0x0000;
+		buffer[i + toolTextPos.x + size.x * toolTextPos.y].Attributes = 0x0000 | color;
 	}
 	
 	if (tool == TOOL::Pencil)
 		toolName = L"Pencil";
 	else if (tool == TOOL::Line)
 		toolName = L"Line";
-	else
+	else if (tool == TOOL::Rectangle)
 		toolName = L"Rectangle";
+	else
+		toolName = L"Bucket";
 
 	for (int i = 0; i < (int)toolName.length(); ++i) {
 		buffer[i + toolTextPos.x + toolText.length() + size.x * toolTextPos.y].Char.UnicodeChar = toolName.at(i);
-		buffer[i + toolTextPos.x + toolText.length() + size.x * toolTextPos.y].Attributes = 0x0070 | 0x0000;
+		buffer[i + toolTextPos.x + toolText.length() + size.x * toolTextPos.y].Attributes = 0x0000 | color;
 	}
 }
