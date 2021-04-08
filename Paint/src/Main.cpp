@@ -1,13 +1,8 @@
 #include "Paint.h"
-#include <fstream>
 
 int main() {
-	COORD appSize = { 120, 30 };
-	COORD fontSize = { 8, 16 };
-
-	std::ifstream in("config.txt");
-	in >> appSize.X >> appSize.Y >> fontSize.X >> fontSize.Y;
-	in.close();
+	COORD appSize = { 64, 36 };
+	COORD fontSize = { 10, 10 };
 
 	Paint paint;
 	paint.Create(L"Paint", appSize.X, appSize.Y, fontSize.X, fontSize.Y);

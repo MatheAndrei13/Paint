@@ -87,14 +87,18 @@ private:
 				clickPos = GetMousePosition();
 				resetClickPos = false;
 			}
-			lastPos = GetMousePosition();
+			if (inCanvas(GetMousePosition())) {
+				lastPos = GetMousePosition();
 
-			if (tool == TOOL::Pencil)
-				Draw(GetMousePosition(), glyph, fgColor | bgColor);
-			if (tool == TOOL::Line)
-				GhostLine(clickPos, lastPos, NULL, fgColor | bgColor);
-			if (tool == TOOL::Rectangle)
-				GhostRectangle(clickPos, lastPos, NULL, fgColor | bgColor);
+				if (tool == TOOL::Pencil)
+					Draw(GetMousePosition(), glyph, fgColor | bgColor);
+				if (tool == TOOL::Line)
+					GhostLine(clickPos, lastPos, NULL, fgColor | bgColor);
+				if (tool == TOOL::Rectangle)
+					GhostRectangle(clickPos, lastPos, NULL, fgColor | bgColor);
+			}
+			else
+				resetClickPos = true;
 		}
 		if (KeyReleased(VK_LBUTTON))
 			if (!resetClickPos) {
