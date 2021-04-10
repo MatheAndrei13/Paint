@@ -3,6 +3,8 @@
 #include <string>
 #include "MathUtils.h"
 
+#define EMPTY_CHAR L' '
+
 class ConsoleApp {
 private:
 	std::wstring appName;
@@ -10,6 +12,7 @@ private:
 	HANDLE handleOut;
 	SMALL_RECT windowSize;
 	COORD screenSize;
+	COORD fontSize;
 
 	CHAR_INFO* screenBuffer;
 	bool updateBuffer = false;
@@ -41,6 +44,8 @@ public:
 	void Start();
 	void Close();
 
+	void ChangeFontSize(int fontWidth, int fontHeight);
+
 private:
 	void Run();
 	void GetInput();
@@ -54,17 +59,19 @@ protected:
 	virtual void OnCreate() = 0;
 	virtual void OnUpdate() = 0;
 
+	// GETTERS
 public:
 	Vec2 GetMousePosition() const;
 	bool KeyPressed(const unsigned char) const;
 	bool KeyReleased(const unsigned char) const;
 	bool KeyHeld(const unsigned char) const;
 
-	// TOOLS
-public:
 	int GetScreenWidth() const;
 	int GetScreenHeight() const;
+	Vec2 GetFontSize() const;
 
+	// TOOLS
+public:
 	bool OutOfBounds(int x, int y) const;
 
 	void SetPixel(int x, int y, wchar_t glyph, unsigned char color);

@@ -6,7 +6,7 @@ Paint::Paint() {
 	canvasSize = Vec2(0, 0);
 	canvasRegion = { 0, 0, 0, 0 };
 
-	glyph = NULL;
+	glyph = EMPTY_CHAR;
 	fgColor = NULL;
 	bgColor = NULL;
 
@@ -364,7 +364,7 @@ void Paint::Bucket(Vec2 vec2, wchar_t glyph, Color color) {
 void Paint::ClearCanvas() {
 	for (int x = 0; x < canvasSize.x; ++x)
 		for (int y = 0; y < canvasSize.y; ++y)
-			Draw(x, y, NULL, 0x0000);
+			Draw(x, y, EMPTY_CHAR, 0x0000);
 }
 
 
@@ -387,7 +387,7 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 	// Panel base color
 	for (int x = 0; x < size.x; ++x)
 		for (int y = 0; y < size.y; ++y) {
-			buffer[x + size.x * y].Char.UnicodeChar = L'\u04DC';
+			buffer[x + size.x * y].Char.UnicodeChar = EMPTY_CHAR;
 			buffer[x + size.x * y].Attributes = color;
 		}
 
@@ -404,7 +404,7 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 		buffer[i + fgColorTextPos.x + size.x * fgColorTextPos.y].Char.UnicodeChar = fgColorText.at(i);
 		buffer[i + fgColorTextPos.x + size.x * fgColorTextPos.y].Attributes = 0x0000 | color;
 	}
-	buffer[fgColorTextPos.x + fgColorText.length() + size.x * fgColorTextPos.y].Char.UnicodeChar = NULL;
+	buffer[fgColorTextPos.x + fgColorText.length() + size.x * fgColorTextPos.y].Char.UnicodeChar = EMPTY_CHAR;
 	buffer[fgColorTextPos.x + fgColorText.length() + size.x * fgColorTextPos.y].Attributes = fgColor << 4;
 
 	// Background text
@@ -412,7 +412,7 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 		buffer[i + bgColorTextPos.x + size.x * bgColorTextPos.y].Char.UnicodeChar = bgColorText.at(i);
 		buffer[i + bgColorTextPos.x + size.x * bgColorTextPos.y].Attributes = 0x0000 | color;
 	}
-	buffer[bgColorTextPos.x + bgColorText.length() + size.x * bgColorTextPos.y].Char.UnicodeChar = NULL;
+	buffer[bgColorTextPos.x + bgColorText.length() + size.x * bgColorTextPos.y].Char.UnicodeChar = EMPTY_CHAR;
 	buffer[bgColorTextPos.x + bgColorText.length() + size.x * bgColorTextPos.y].Attributes = bgColor;
 
 	// Tool Text

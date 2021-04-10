@@ -39,10 +39,11 @@ void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight,
 	}*/
 
 	// Set Font
+	fontSize = { (short)fontWidth, (short)fontHeight };
 	CONSOLE_FONT_INFOEX fontInfo;
 	fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
 	fontInfo.nFont = 0;
-	fontInfo.dwFontSize = COORD({ (short)fontWidth, (short)fontHeight });
+	fontInfo.dwFontSize = fontSize;
 	fontInfo.FontFamily = FF_DONTCARE;
 	fontInfo.FontWeight = FW_NORMAL;
 	wcscpy_s(fontInfo.FaceName, fontFace.c_str());
@@ -154,6 +155,44 @@ void ConsoleApp::Error(const wchar_t* message) {
 	wprintf(L"%ls\n\n", message);
 	wprintf(L"Press ENTER to exit...");
 	while (!GetAsyncKeyState(VK_RETURN));
+}
+
+void ConsoleApp::ChangeFontSize(int fontWidth, int fontHeight) {
+	// Check for Minimum Font Size
+	if (fontWidth < 8 || fontHeight < 8)
+		return;
+
+	// Update Font Size
+	fontSize = { (short)fontWidth, (short)fontHeight };
+
+	CONSOLE_FONT_INFOEX fontInfo;
+	fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+	if (!GetCurrentConsoleFontEx(handleOut, FALSE, &fontInfo)) {
+		Error(L"Error: GetCurrentConsoleFontEx");
+		return;
+	}
+	fontInfo.dwFontSize = fontSize;
+	fontInfo.FontFamily = FF_DONTCARE;
+	if (!SetCurrentConsoleFontEx(handleOut, FALSE, &fontInfo)) {
+		Error(L"Error: SetCurrentConsoleFontEx");
+		return;
+	}
+
+	// Check Maximum Font Size
+	CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
+	if (!GetConsoleScreenBufferInfo(handleOut, &screenBufferInfo)) {
+		Error(L"Error: GetConsoleScreenBufferInfo");
+		return;
+	}
+
+	if (screenBufferInfo.dwMaximumWindowSize.X != screenSize.X || screenBufferInfo.dwMaximumWindowSize.Y != screenSize.Y) {
+		fontSize = { (short)fontWidth - 1, (short)fontHeight - 1 };
+		fontInfo.dwFontSize = fontSize;
+		if (!SetCurrentConsoleFontEx(handleOut, FALSE, &fontInfo)) {
+			Error(L"Error: SetCurrentConsoleFontEx");
+			return;
+		}
+	}
 }
 
 void ConsoleApp::Start() {
@@ -281,11 +320,15 @@ bool ConsoleApp::KeyHeld(const unsigned char keyCode) const {
 	return keyboardInput.keys[keyCode].oldState && keyboardInput.keys[keyCode].newState;
 }
 
-
-// TOOLS
 int ConsoleApp::GetScreenWidth() const { return (int)screenSize.X; }
 int ConsoleApp::GetScreenHeight() const { return (int)screenSize.Y; }
 
+Vec2 ConsoleApp::GetFontSize() const {
+	return Vec2((int)fontSize.X, (int)fontSize.Y);
+}
+
+
+// TOOLS
 bool ConsoleApp::OutOfBounds(int x, int y) const { return (x < 0 || y < 0) || (x >= screenSize.X || y >= screenSize.Y); }
 
 void ConsoleApp::SetPixel(int x, int y, wchar_t glyph, unsigned char color) {
@@ -329,5 +372,5 @@ void ConsoleApp::DrawBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT regi
 void ConsoleApp::ClearScreen() {
 	for (short x = 0; x < screenSize.X; ++x)
 		for (short y = 0; y < screenSize.Y; ++y)
-			SetPixel(x, y, L' ', 0x0000);
+			SetPixel(x, y, L' ', EMPTY_CHAR);
 }

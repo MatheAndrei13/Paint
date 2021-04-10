@@ -136,6 +136,11 @@ private:
 		if (KeyReleased('B'))
 			ChangeTool(TOOL::Bucket);
 
+		if (KeyReleased(VK_OEM_PLUS) || KeyReleased(VK_ADD))
+			ChangeFontSize(GetFontSize().x + 1, GetFontSize().y + 1);
+		if (KeyReleased(VK_OEM_MINUS) || KeyReleased(VK_SUBTRACT))
+			ChangeFontSize(GetFontSize().x - 1, GetFontSize().y - 1);
+
 		if (KeyPressed('C'))
 			ClearCanvas();
 
