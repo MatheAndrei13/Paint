@@ -138,6 +138,9 @@ private:
 
 		if (KeyPressed('C'))
 			ClearCanvas();
+
+		if (KeyReleased('Q'))
+			Close();
 	}
 
 private:

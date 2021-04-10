@@ -328,7 +328,7 @@ void Paint::GhostEllipse(Vec2 start, Vec2 end, wchar_t glyph, Color color) {
 
 void Paint::Bucket(Vec2 vec2, wchar_t glyph, Color color) {
 	wchar_t startingGlyph = canvas[vec2.x + canvasSize.x * vec2.y].Char.UnicodeChar;
-	Color startingColor = canvas[vec2.x + canvasSize.x * vec2.y].Attributes;
+	Color startingColor = (unsigned char)canvas[vec2.x + canvasSize.x * vec2.y].Attributes;
 
 	if (startingGlyph == glyph && startingColor == color)
 		return;
@@ -387,7 +387,7 @@ void Paint::Panel::DrawPanel(wchar_t glyph, Color fgColor, Color bgColor, TOOL t
 	// Panel base color
 	for (int x = 0; x < size.x; ++x)
 		for (int y = 0; y < size.y; ++y) {
-			buffer[x + size.x * y].Char.UnicodeChar = NULL;
+			buffer[x + size.x * y].Char.UnicodeChar = L'\u04DC';
 			buffer[x + size.x * y].Attributes = color;
 		}
 

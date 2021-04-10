@@ -35,7 +35,7 @@ private:
 
 public:
 	ConsoleApp();
-	void Create(std::wstring appName, int screenWidth, int screenHeight, int fontWidth, int fontHeight);
+	void Create(std::wstring appName, int screenWidth, int screenHeight, std::wstring fontFace, int fontWidth, int fontHeight);
 	~ConsoleApp();
 
 	void Start();

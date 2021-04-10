@@ -18,7 +18,7 @@ ConsoleApp::ConsoleApp() {
 	screenBuffer = nullptr;
 }
 
-void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight, int fontWidth, int fontHeight) {
+void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight, std::wstring fontFace, int fontWidth, int fontHeight) {
 	// Set App Title
 	this->appName = appName;
 	SetConsoleTitle(appName.c_str());
@@ -38,14 +38,14 @@ void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight,
 		return;
 	}*/
 
-	// Set Font Size
+	// Set Font
 	CONSOLE_FONT_INFOEX fontInfo;
 	fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
 	fontInfo.nFont = 0;
 	fontInfo.dwFontSize = COORD({ (short)fontWidth, (short)fontHeight });
 	fontInfo.FontFamily = FF_DONTCARE;
 	fontInfo.FontWeight = FW_NORMAL;
-	wcscpy_s(fontInfo.FaceName, L"Consolas");
+	wcscpy_s(fontInfo.FaceName, fontFace.c_str());
 	if (!SetCurrentConsoleFontEx(handleOut, FALSE, &fontInfo)) {
 		Error(L"Error: SetCurrentConsoleFontEx");
 		return;
@@ -329,5 +329,5 @@ void ConsoleApp::DrawBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT regi
 void ConsoleApp::ClearScreen() {
 	for (short x = 0; x < screenSize.X; ++x)
 		for (short y = 0; y < screenSize.Y; ++y)
-			SetPixel(x, y, NULL, 0x0000);
+			SetPixel(x, y, L' ', 0x0000);
 }
