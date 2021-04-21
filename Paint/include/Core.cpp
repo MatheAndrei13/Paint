@@ -18,7 +18,7 @@ ConsoleApp::ConsoleApp() {
 	screenBuffer = nullptr;
 }
 
-void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight, std::wstring fontFace, int fontWidth, int fontHeight) {
+void ConsoleApp::Create(std::wstring appName, short screenWidth, short screenHeight, std::wstring fontFace, short fontWidth, short fontHeight) {
 	// Set App Title
 	this->appName = appName;
 	SetConsoleTitle(appName.c_str());
@@ -28,7 +28,7 @@ void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight,
 	SetConsoleWindowInfo(handleOut, TRUE, &windowSize);
 
 	// Set Screen Buffer Size
-	screenSize = { (short)screenWidth, (short)screenHeight };
+	screenSize = { screenWidth, screenHeight };
 	if (!SetConsoleScreenBufferSize(handleOut, screenSize)) {
 		Error(L"Error: SetConsoleScreenBufferSize");
 		return;
@@ -39,12 +39,12 @@ void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight,
 	}*/
 
 	// Set Font
-	fontSize = { (short)fontWidth, (short)fontHeight };
+	fontSize = { fontWidth, fontHeight };
 	CONSOLE_FONT_INFOEX fontInfo;
 	fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
 	fontInfo.nFont = 0;
 	fontInfo.dwFontSize = fontSize;
-	fontInfo.FontFamily = FF_DONTCARE;
+	fontInfo.FontFamily = TMPF_TRUETYPE;
 	fontInfo.FontWeight = FW_NORMAL;
 	wcscpy_s(fontInfo.FaceName, fontFace.c_str());
 	if (!SetCurrentConsoleFontEx(handleOut, FALSE, &fontInfo)) {
@@ -58,17 +58,17 @@ void ConsoleApp::Create(std::wstring appName, int screenWidth, int screenHeight,
 		Error(L"Error: GetConsoleScreenBufferInfo");
 		return;
 	}
-	if ((short)screenWidth > screenBufferInfo.dwMaximumWindowSize.X) {
+	if (screenWidth > screenBufferInfo.dwMaximumWindowSize.X) {
 		Error(L"Error: Screen Width Exceeded");
 		return;
 	}
-	if ((short)screenHeight > screenBufferInfo.dwMaximumWindowSize.Y) {
+	if (screenHeight > screenBufferInfo.dwMaximumWindowSize.Y) {
 		Error(L"Error: Screen Height Exceeded");
 		return;
 	}
 
 	// Set Window Size
-	windowSize = { 0, 0, (short)screenWidth - 1, (short)screenHeight - 1 };
+	windowSize = { 0, 0, screenWidth - 1, screenHeight - 1 };
 	if (!SetConsoleWindowInfo(handleOut, TRUE, &windowSize)) {
 		Error(L"Error: SetConsoleWindowInfo");
 		return;
@@ -157,13 +157,13 @@ void ConsoleApp::Error(const wchar_t* message) {
 	while (!GetAsyncKeyState(VK_RETURN));
 }
 
-void ConsoleApp::ChangeFontSize(int fontWidth, int fontHeight) {
+void ConsoleApp::ChangeFontSize(short fontWidth, short fontHeight) {
 	// Check for Minimum Font Size
 	if (fontWidth < 8 || fontHeight < 8)
 		return;
 
 	// Update Font Size
-	fontSize = { (short)fontWidth, (short)fontHeight };
+	fontSize = { fontWidth, fontHeight };
 
 	CONSOLE_FONT_INFOEX fontInfo;
 	fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
@@ -172,7 +172,7 @@ void ConsoleApp::ChangeFontSize(int fontWidth, int fontHeight) {
 		return;
 	}
 	fontInfo.dwFontSize = fontSize;
-	fontInfo.FontFamily = FF_DONTCARE;
+	fontInfo.FontFamily = TMPF_TRUETYPE;
 	if (!SetCurrentConsoleFontEx(handleOut, FALSE, &fontInfo)) {
 		Error(L"Error: SetCurrentConsoleFontEx");
 		return;
@@ -186,7 +186,7 @@ void ConsoleApp::ChangeFontSize(int fontWidth, int fontHeight) {
 	}
 
 	if (screenBufferInfo.dwMaximumWindowSize.X != screenSize.X || screenBufferInfo.dwMaximumWindowSize.Y != screenSize.Y) {
-		fontSize = { (short)fontWidth - 1, (short)fontHeight - 1 };
+		fontSize = { fontWidth - 1, fontHeight - 1 };
 		fontInfo.dwFontSize = fontSize;
 		if (!SetCurrentConsoleFontEx(handleOut, FALSE, &fontInfo)) {
 			Error(L"Error: SetCurrentConsoleFontEx");
@@ -232,7 +232,7 @@ void ConsoleApp::Run() {
 		}
 
 		// Update Title
-		std::wstring title = appName + L" - FPS: " + std::to_wstring(int(round(1 / deltaTime)));
+		std::wstring title = appName + L" - FPS: " + std::to_wstring((short)(round(1 / deltaTime)));
 		SetConsoleTitle(title.c_str());
 
 		// Stop Frame Timer
@@ -302,7 +302,7 @@ void ConsoleApp::GetKeyboardInput() {
 
 
 Vec2 ConsoleApp::GetMousePosition() const {
-	return Vec2((int)mouseInput.position.X, (int)mouseInput.position.Y);
+	return Vec2(mouseInput.position.X, mouseInput.position.Y);
 }
 bool ConsoleApp::KeyPressed(const unsigned char keyCode) const {
 	if (keyCode == VK_LBUTTON || keyCode == VK_RBUTTON)
@@ -320,18 +320,18 @@ bool ConsoleApp::KeyHeld(const unsigned char keyCode) const {
 	return keyboardInput.keys[keyCode].oldState && keyboardInput.keys[keyCode].newState;
 }
 
-int ConsoleApp::GetScreenWidth() const { return (int)screenSize.X; }
-int ConsoleApp::GetScreenHeight() const { return (int)screenSize.Y; }
+short ConsoleApp::GetScreenWidth() const { return screenSize.X; }
+short ConsoleApp::GetScreenHeight() const { return screenSize.Y; }
 
 Vec2 ConsoleApp::GetFontSize() const {
-	return Vec2((int)fontSize.X, (int)fontSize.Y);
+	return Vec2(fontSize.X, fontSize.Y);
 }
 
 
 // TOOLS
-bool ConsoleApp::OutOfBounds(int x, int y) const { return (x < 0 || y < 0) || (x >= screenSize.X || y >= screenSize.Y); }
+bool ConsoleApp::OutOfBounds(short x, short y) const { return (x < 0 || y < 0) || (x >= screenSize.X || y >= screenSize.Y); }
 
-void ConsoleApp::SetPixel(int x, int y, wchar_t glyph, unsigned char color) {
+void ConsoleApp::SetPixel(short x, short y, wchar_t glyph, unsigned char color) {
 	if (OutOfBounds(x, y))
 		return;
 
@@ -349,28 +349,28 @@ void ConsoleApp::SetPixel(Vec2 vec2, wchar_t glyph, unsigned char color) {
 
 	updateBuffer = true;
 }
-void ConsoleApp::Fill(int x0, int y0, int x1, int y1, wchar_t glyph, unsigned char color) {
-	for (short x = (short)x0; x <= (short)x1; ++x)
-		for (short y = (short)y0; y <= (short)y1; ++y)
+void ConsoleApp::Fill(short x0, short y0, short x1, short y1, wchar_t glyph, unsigned char color) {
+	for (short x = x0; x <= x1; ++x)
+		for (short y = y0; y <= y1; ++y)
 			if (!OutOfBounds(x, y))
 				SetPixel(x, y, glyph, color);
 }
 void ConsoleApp::Fill(Vec2 vec2_0, Vec2 vec2_1, wchar_t glyph, unsigned char color) {
-	for (short x = (short)vec2_0.x; x <= (short)vec2_1.x; ++x)
-		for (short y = (short)vec2_0.y; y <= (short)vec2_1.y; ++y)
+	for (short x = vec2_0.x; x <= vec2_1.x; ++x)
+		for (short y = vec2_0.y; y <= vec2_1.y; ++y)
 			if (!OutOfBounds(x, y))
 				SetPixel(x, y, glyph, color);
 }
 
-void ConsoleApp::DrawBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT region) {
+void ConsoleApp::WriteToBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT region) {
 	for (short x = 0; x < bufferSize.X && x + region.Left <= region.Right; ++x)
 		for (short y = 0; y <= bufferSize.Y && y + region.Top <= region.Bottom; ++y)
 			if (!OutOfBounds(x, y))
-				SetPixel(x + region.Left, y + region.Top, buffer[x + screenSize.X * y].Char.UnicodeChar, (unsigned char)buffer[x + screenSize.X * y].Attributes);
+				SetPixel(x + region.Left, y + region.Top, buffer[x + bufferSize.X * y].Char.UnicodeChar, (unsigned char)buffer[x + bufferSize.X * y].Attributes);
 }
 
 void ConsoleApp::ClearScreen() {
 	for (short x = 0; x < screenSize.X; ++x)
 		for (short y = 0; y < screenSize.Y; ++y)
-			SetPixel(x, y, L' ', EMPTY_CHAR);
+			SetPixel(x, y, L' ', 0x0000);
 }

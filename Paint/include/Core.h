@@ -3,8 +3,6 @@
 #include <string>
 #include "MathUtils.h"
 
-#define EMPTY_CHAR L' '
-
 class ConsoleApp {
 private:
 	std::wstring appName;
@@ -38,13 +36,13 @@ private:
 
 public:
 	ConsoleApp();
-	void Create(std::wstring appName, int screenWidth, int screenHeight, std::wstring fontFace, int fontWidth, int fontHeight);
+	void Create(std::wstring appName, short screenWidth, short screenHeight, std::wstring fontFace, short fontWidth, short fontHeight);
 	~ConsoleApp();
 
 	void Start();
 	void Close();
 
-	void ChangeFontSize(int fontWidth, int fontHeight);
+	void ChangeFontSize(short fontWidth, short fontHeight);
 
 private:
 	void Run();
@@ -66,20 +64,20 @@ public:
 	bool KeyReleased(const unsigned char) const;
 	bool KeyHeld(const unsigned char) const;
 
-	int GetScreenWidth() const;
-	int GetScreenHeight() const;
+	short GetScreenWidth() const;
+	short GetScreenHeight() const;
 	Vec2 GetFontSize() const;
 
 	// TOOLS
 public:
-	bool OutOfBounds(int x, int y) const;
+	bool OutOfBounds(short x, short y) const;
 
-	void SetPixel(int x, int y, wchar_t glyph, unsigned char color);
+	void SetPixel(short x, short y, wchar_t glyph, unsigned char color);
 	void SetPixel(Vec2 vec2, wchar_t glyph, unsigned char color);
-	void Fill(int x0, int y0, int x1, int y1, wchar_t glyph, unsigned char color);
+	void Fill(short x0, short y0, short x1, short y1, wchar_t glyph, unsigned char color);
 	void Fill(Vec2 vec2_0, Vec2 vec2_1, wchar_t glyph, unsigned char color);
 
-	void DrawBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT region);
+	void WriteToBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT region);
 
 	void ClearScreen();
 };

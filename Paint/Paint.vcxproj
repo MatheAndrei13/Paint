@@ -147,18 +147,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Panels.cpp" />
+    <ClCompile Include="src\Canvas.cpp" />
     <ClCompile Include="include\Core.cpp" />
     <ClCompile Include="include\MathUtils.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Paint.cpp" />
     <ClCompile Include="src\TODOList.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Panels.h" />
+    <ClInclude Include="src\Canvas.h" />
     <ClInclude Include="include\Colors.h" />
     <ClInclude Include="include\Core.h" />
     <ClInclude Include="include\MathUtils.h" />
     <ClInclude Include="include\PixelTypes.h" />
     <ClInclude Include="src\Paint.h" />
+    <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\Types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\glyphs01.in" />
+    <None Include="resources\glyphs02.in" />
+    <None Include="resources\palette.in" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="resources\fonts\Square Mono.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\fonts\SquareMono.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
