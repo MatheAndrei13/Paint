@@ -87,6 +87,10 @@ void Paint::CheckMouseInput() {
 				canvas.Bucket(mousePosition, glyph, fgColor | bgColor);
 				break;
 
+			case TOOL::Picker:
+				canvas.Picker(*this, mousePosition);
+				break;
+
 			default:
 				break;
 			}

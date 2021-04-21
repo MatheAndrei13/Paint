@@ -518,6 +518,10 @@ void ToolPanel::ChangeTool(TOOL tool) {
 		bucketButton.SetPixel(Vec2(bucketButton.size.x - 1, 0), L'\u25a1', color);
 		break;
 
+	case TOOL::Picker:
+		pickerButton.SetPixel(Vec2(pickerButton.size.x - 1, 0), L'\u25a1', color);
+		break;
+
 	default:
 		break;
 	}
@@ -543,6 +547,10 @@ void ToolPanel::ChangeTool(TOOL tool) {
 		bucketButton.SetPixel(Vec2(bucketButton.size.x - 1, 0), L'\u25a0', color);
 		break;
 
+	case TOOL::Picker:
+		pickerButton.SetPixel(Vec2(pickerButton.size.x - 1, 0), L'\u25a0', color);
+		break;
+
 	default:
 		break;
 	}
@@ -561,6 +569,8 @@ void ToolPanel::SelectTool(Paint& app, Vec2 mousePosition) {
 		app.ChangeTool(TOOL::Ellipse);
 	else if (bucketButton.inBounds(mousePosition))
 		app.ChangeTool(TOOL::Bucket);
+	else if (pickerButton.inBounds(mousePosition))
+		app.ChangeTool(TOOL::Picker);
 }
 
 void ToolPanel::PressButton(Paint& app, Vec2 mousePosition) {

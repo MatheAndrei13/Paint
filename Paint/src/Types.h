@@ -7,5 +7,5 @@ using Glyph = wchar_t;
 using Color = unsigned char;
 
 enum class TOOL {
-	Pencil, Line, Rectangle, Ellipse, Bucket
+	Pencil, Line, Rectangle, Ellipse, Bucket, Picker
 };

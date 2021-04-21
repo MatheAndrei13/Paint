@@ -8,4 +8,4 @@
 // Done:
 // TODO: Redesign the whole app and add new UI
 // TODO: Add an option to change the size of the font while the app is running
-// TODO: Add tools - ellipse tool, bucket tool
+// TODO: Add tools - ellipse tool, bucket tool, picker tool

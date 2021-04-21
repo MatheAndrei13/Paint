@@ -275,6 +275,12 @@ void Canvas::Bucket(Vec2 vec2, Glyph glyph, Color color) {
 	}
 }
 
+void Canvas::Picker(Paint& app, Vec2 vec2) {
+	app.ChangeGlyph(texture.GetPixel(vec2).Char.UnicodeChar);
+	app.ChangeFGColor(texture.GetPixel(vec2).Attributes);
+	app.ChangeBGColor(texture.GetPixel(vec2).Attributes);
+}
+
 void Canvas::Clear() {
 	texture.Clear();
 }

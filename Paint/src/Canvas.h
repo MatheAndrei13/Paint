@@ -28,6 +28,8 @@ public:
 
 	void Bucket(Vec2 vec2, Glyph glyph, Color color);
 
+	void Picker(Paint& app, Vec2 vec2);
+
 	void Clear();
 };
 
