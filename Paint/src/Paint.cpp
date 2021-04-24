@@ -250,8 +250,6 @@ void Paint::Load(std::string imageName) {
 		SavedImageNamePanel.Enable();
 		return;
 	}
-	
-	ChangeImageName(imageName);
 		
 	std::string imagePath = savePath + imageName + imageExtension;
 
@@ -260,6 +258,8 @@ void Paint::Load(std::string imageName) {
 	// Return if file failed
 	if (!fin.is_open())
 		return;
+
+	ChangeImageName(imageName);
 
 	canvas.Load(fin);
 
