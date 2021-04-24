@@ -13,7 +13,6 @@ class ImagePanel {
 	Texture resizeButton;
 	Texture saveButton;
 	Texture loadButton;
-	Texture exportButton;
 	Texture exitButton;
 
 public:
@@ -40,13 +39,15 @@ class InfoPanel {
 	Texture glyphLabel;
 	Texture fgColorLabel;
 	Texture bgColorLabel;
+	Texture imageLabel;
+	Texture imageNameLabel;
 
 public:
 	InfoPanel();
 
 	bool inBounds(Vec2 vec2) const;
 
-	void Init(std::wstring name, Vec2 size, Rect region, Color color, Glyph glyph, Color fgColor, Color bgColor);
+	void Init(std::wstring name, Vec2 size, Rect region, Color color, Glyph glyph, Color fgColor, Color bgColor, std::string imageName);
 	void Update(Paint& app);
 
 private:
@@ -56,6 +57,7 @@ public:
 	void ChangeGlyph(Glyph glyph);
 	void ChangeFGColor(Color color);
 	void ChangeBGColor(Color color);
+	void ChangeImageName(std::string imageName);
 };
 
 class ToolPanel {
@@ -139,4 +141,52 @@ public:
 	void ChangeBGColor(Color color);
 
 	void SelectColor(Paint& app, Vec2 mousePosition);
+};
+
+/* ####### INPUT FIELD ####### */
+struct InputField {
+	Texture texture;
+	std::string value;
+	Color color;
+
+	Glyph cursorGlyph;
+	short cursorPosition;
+	
+	short maxNumOfCharacters;
+
+	InputField();
+
+	void Init(Vec2 size, Rect region, Color color);
+
+	void Update(Paint& app);
+
+	void Reset();
+
+	void CheckInput(Paint& app);
+};
+
+class InputPanel {
+	std::wstring name;
+	Texture texture;
+	Color color;
+
+	InputField inputField;
+
+public:
+	std::string value;
+
+	bool active;
+
+public:
+	InputPanel();
+
+	bool inBounds(Vec2 vec2) const;
+
+	void Init(std::wstring name, Vec2 size, Rect region, Color color);
+	void Update(Paint& app);
+
+	void Enable();
+	void Disable();
+
+	void CheckInput(Paint& app);
 };

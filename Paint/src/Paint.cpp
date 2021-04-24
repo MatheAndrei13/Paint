@@ -3,10 +3,14 @@
 #include <iomanip>
 
 Paint::Paint() {
+	imageName = "";
+
 	glyph = EMPTY_GLYPH;
 	fgColor = 0x0000;
 	bgColor = 0x0000;
 	tool = TOOL::Pencil;
+
+	updateVisualElements = false;
 
 	resetOriginPoint = true;
 }
@@ -16,20 +20,47 @@ void Paint::OnCreate() {
 	canvas.Init(Vec2(GetScreenWidth() - 11, GetScreenHeight()), Rect(0, 0, GetScreenWidth() - 12, GetScreenHeight()));
 
 	// Initialize Panels
-	imagePanel.Init(L"IMAGE", Vec2(11, 9), Rect(GetScreenWidth() - 11, 0, GetScreenWidth() - 1, 8), 0x0070);
-	infoPanel.Init(L"INFO", Vec2(11, 8), Rect(GetScreenWidth() - 11, 9, GetScreenWidth() - 1, 16), 0x0070, glyph, fgColor, bgColor);
+	imagePanel.Init(L"IMAGE", Vec2(11, 8), Rect(GetScreenWidth() - 11, 0, GetScreenWidth() - 1, 7), 0x0070);
+	infoPanel.Init(L"INFO", Vec2(11, 9), Rect(GetScreenWidth() - 11, 8, GetScreenWidth() - 1, 16), 0x0070, glyph, fgColor, bgColor, imageName);
 	toolPanel.Init(L"TOOLS", Vec2(11, 17), Rect(GetScreenWidth() - 11, 17, GetScreenWidth() - 1, 33), 0x0070, tool);
 	glyphPanel.Init(L"GLYPHS", Vec2(11, 20), Rect(GetScreenWidth() - 11, 34, GetScreenWidth() - 1, 53), 0x0070, glyph);
 	palettePanel.Init(L"PALETTE", Vec2(11, 6), Rect(GetScreenWidth() - 11, 54, GetScreenWidth() - 1, 59), 0x0070, fgColor, bgColor);
+
+	// Initialize Input Panels
+	NewImageNamePanel.Init(L"IMAGE NAME", Vec2(14, 3), Rect((GetScreenWidth() - 11) / 2 - 7, GetScreenHeight() / 2 - 3, (GetScreenWidth() - 11) / 2 + 6, GetScreenHeight() / 2 - 1), 0x0070);
+	SavedImageNamePanel.Init(L"IMAGE NAME", Vec2(14, 3), Rect((GetScreenWidth() - 11) / 2 - 7, GetScreenHeight() / 2 - 3, (GetScreenWidth() - 11) / 2 + 6, GetScreenHeight() / 2 - 1), 0x0070);
 }
 
 void Paint::OnUpdate() {
-	// Update Canvas & Panels
-	UpdateVisualElements();
+	// Freeze Elements if Input Panel exists
+	if (NewImageNamePanel.active) {
+		NewImageNamePanel.Update(*this);
+		NewImageNamePanel.CheckInput(*this);
+		if (NewImageNamePanel.value != "") {
+			ChangeImageName(NewImageNamePanel.value);
+			Save();
+		}
+		return;
+	}
+	if (SavedImageNamePanel.active) {
+		SavedImageNamePanel.Update(*this);
+		SavedImageNamePanel.CheckInput(*this);
+		if (SavedImageNamePanel.value != "") {
+			Load(SavedImageNamePanel.value);
+			SavedImageNamePanel.value = "";
+		}
+		return;
+	}
 
 	// Check Inputs
 	CheckMouseInput();
 	CheckKeyboardInput();
+
+	// Update Canvas & Panels
+	UpdateVisualElements();
+
+	// Draw Blueprints if necessary
+	DrawBlueprints();
 }
 
 void Paint::UpdateVisualElements() {
@@ -46,41 +77,19 @@ void Paint::UpdateVisualElements() {
 
 void Paint::CheckMouseInput() {
 	// Get Current Mouse Position
-	Vec2 mousePosition = GetMousePosition();
+	mousePosition = GetMousePosition();
+
+	// Reset originPoint (for Blueprint Tools)
+	if (resetOriginPoint)
+		originPoint = mousePosition;
 
 	if (KeyPressed(VK_LBUTTON)) { // Left Click
-		// Draw according to the Selected Tool
 		if (canvas.inBounds(mousePosition)) {
+			resetOriginPoint = false;
+
 			switch (tool) {
 			case TOOL::Pencil:
 				canvas.Draw(mousePosition, glyph, fgColor | bgColor);
-				break;
-
-			case TOOL::Line:
-				if (resetOriginPoint) {
-					// Mouse Position when Left Click (for Blueprint Tools)
-					originPoint = mousePosition;
-					resetOriginPoint = false;
-				}
-				canvas.LineBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
-				break;
-
-			case TOOL::Rectangle:
-				if (resetOriginPoint) {
-					// Mouse Position when Left Click (for Blueprint Tools)
-					originPoint = mousePosition;
-					resetOriginPoint = false;
-				}
-				canvas.RectangleBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
-				break;
-
-			case TOOL::Ellipse:
-				if (resetOriginPoint) {
-					// Mouse Position when Left Click (for Blueprint Tools)
-					originPoint = mousePosition;
-					resetOriginPoint = false;
-				}
-				canvas.EllipseBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
 				break;
 
 			case TOOL::Bucket:
@@ -118,11 +127,11 @@ void Paint::CheckMouseInput() {
 			default:
 				break;
 			}
-
-			canvas.Update(*this);
-
 			resetOriginPoint = true;
 		}
+
+		// Update Timeline
+		canvas.UpdateTimeline();
 
 		// Press Button from Image Panel
 		if (imagePanel.inBounds(mousePosition))
@@ -143,6 +152,31 @@ void Paint::CheckMouseInput() {
 		// Select Color from Palette
 		if (palettePanel.inBounds(mousePosition))
 			palettePanel.SelectColor(*this, mousePosition);
+	}
+}
+
+void Paint::DrawBlueprints() {
+	if (KeyPressed(VK_LBUTTON)) { // Left Click
+		if (canvas.inBounds(mousePosition)) {
+			switch (tool) {
+			case TOOL::Line:
+				canvas.LineBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
+				break;
+
+			case TOOL::Rectangle:
+				canvas.RectangleBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
+				break;
+
+			case TOOL::Ellipse:
+				canvas.EllipseBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
+				break;
+
+			default:
+				break;
+			}
+		}
+		else
+			resetOriginPoint = true;
 	}
 }
 
@@ -184,6 +218,62 @@ void Paint::CheckKeyboardInput() {
 		Close();
 }
 
+void Paint::New() {
+	ChangeImageName("");
+	canvas.Clear();
+}
+
+void Paint::Save() {
+	// Name Image if it doesn't have one
+	if (imageName == "") {
+		NewImageNamePanel.Enable();
+		return;
+	}
+
+	// Save Image
+	std::string imagePath = savePath + imageName + imageExtension;
+
+	std::ofstream fout(imagePath);
+
+	// Return if file failed
+	if (!fout.is_open())
+		return;
+
+	canvas.Save(fout);
+
+	fout.close();
+}
+
+void Paint::Load(std::string imageName) {
+	// Select Saved Image
+	if (SavedImageNamePanel.value == "") {
+		SavedImageNamePanel.Enable();
+		return;
+	}
+	
+	ChangeImageName(imageName);
+		
+	std::string imagePath = savePath + imageName + imageExtension;
+
+	std::ifstream fin(imagePath);
+
+	// Return if file failed
+	if (!fin.is_open())
+		return;
+
+	canvas.Load(fin);
+
+	fin.close();
+}
+
+void Paint::Undo() {
+	canvas.Undo();
+}
+
+void Paint::Redo() {
+	canvas.Redo();
+}
+
 void Paint::ChangeGlyph(Glyph glyph) {
 	this->glyph = glyph;
 
@@ -209,6 +299,12 @@ void Paint::ChangeTool(TOOL tool) {
 	this->tool = tool;
 
 	toolPanel.ChangeTool(tool);
+}
+
+void Paint::ChangeImageName(std::string name) {
+	imageName = name;
+
+	infoPanel.ChangeImageName(imageName);
 }
 
 void Paint::NextFGColor() {

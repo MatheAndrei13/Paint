@@ -32,6 +32,7 @@ private:
 	struct KeyboardInput {
 		static constexpr short numKeys = 256;
 		Key keys[numKeys];
+		bool capslock = false;
 	} keyboardInput;
 
 public:
@@ -63,6 +64,7 @@ public:
 	bool KeyPressed(const unsigned char) const;
 	bool KeyReleased(const unsigned char) const;
 	bool KeyHeld(const unsigned char) const;
+	bool CapsLock() const;
 
 	short GetScreenWidth() const;
 	short GetScreenHeight() const;

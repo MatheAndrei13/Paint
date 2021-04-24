@@ -4,6 +4,10 @@
 #include "Panels.h"
 
 class Paint : public ConsoleApp {
+	std::string imageName;
+	const std::string savePath = "images/";
+	const std::string imageExtension = ".uimg";
+
 	Canvas canvas;
 
 	ImagePanel imagePanel;
@@ -11,6 +15,9 @@ class Paint : public ConsoleApp {
 	ToolPanel toolPanel;
 	GlyphPanel glyphPanel;
 	PalettePanel palettePanel;
+
+	InputPanel NewImageNamePanel;
+	InputPanel SavedImageNamePanel;
 
 	Glyph glyph;
 	Color fgColor;
@@ -23,6 +30,9 @@ class Paint : public ConsoleApp {
 	bool resetOriginPoint;
 
 public:
+	bool updateVisualElements;
+
+public:
 	Paint();
 
 private:
@@ -30,14 +40,24 @@ private:
 	void OnUpdate();
 
 	void UpdateVisualElements();
+	void DrawBlueprints();
 	void CheckMouseInput();
 	void CheckKeyboardInput();
 
 public:
+	void New();
+	void Save();
+	void Load(std::string image);
+
+	void Undo();
+	void Redo();
+
 	void ChangeGlyph(Glyph glyph);
 	void ChangeFGColor(Color color);
 	void ChangeBGColor(Color color);
 	void ChangeTool(TOOL tool);
+
+	void ChangeImageName(std::string name);
 
 	void NextFGColor();
 	void PreviousFGColor();

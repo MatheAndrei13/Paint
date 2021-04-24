@@ -298,6 +298,9 @@ void ConsoleApp::GetKeyboardInput() {
 		// Update New Key State
 		keyboardInput.keys[i].newState = GetAsyncKeyState(i) & 0x8000;
 	}
+
+	// Update CAPSLOCK Key
+	keyboardInput.capslock = GetKeyState(VK_CAPITAL) & 0x0001;
 }
 
 
@@ -318,6 +321,9 @@ bool ConsoleApp::KeyHeld(const unsigned char keyCode) const {
 	if (keyCode == VK_LBUTTON || keyCode == VK_RBUTTON)
 		return mouseInput.buttons[keyCode - 1].oldState && mouseInput.buttons[keyCode - 1].newState;
 	return keyboardInput.keys[keyCode].oldState && keyboardInput.keys[keyCode].newState;
+}
+bool ConsoleApp::CapsLock() const {
+	return keyboardInput.capslock;
 }
 
 short ConsoleApp::GetScreenWidth() const { return screenSize.X; }
@@ -365,8 +371,7 @@ void ConsoleApp::Fill(Vec2 vec2_0, Vec2 vec2_1, wchar_t glyph, unsigned char col
 void ConsoleApp::WriteToBuffer(CHAR_INFO* buffer, COORD bufferSize, SMALL_RECT region) {
 	for (short x = 0; x < bufferSize.X && x + region.Left <= region.Right; ++x)
 		for (short y = 0; y <= bufferSize.Y && y + region.Top <= region.Bottom; ++y)
-			if (!OutOfBounds(x, y))
-				SetPixel(x + region.Left, y + region.Top, buffer[x + bufferSize.X * y].Char.UnicodeChar, (unsigned char)buffer[x + bufferSize.X * y].Attributes);
+			SetPixel(x + region.Left, y + region.Top, buffer[x + bufferSize.X * y].Char.UnicodeChar, (unsigned char)buffer[x + bufferSize.X * y].Attributes);
 }
 
 void ConsoleApp::ClearScreen() {
