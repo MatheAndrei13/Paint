@@ -1,8 +1,11 @@
 #include "Canvas.h"
 #include "Paint.h"
 #include <queue>
+#include <iomanip>
 
-Canvas::Canvas() {}
+Canvas::Canvas() {
+	updateTimeline = false;
+}
 
 bool Canvas::inBounds(Vec2 vec2) const {
 	return texture.inBounds(vec2);
@@ -13,16 +16,94 @@ void Canvas::Init(Vec2 size, Rect region) {
 }
 
 void Canvas::Update(Paint& app) {
-	if (!texture.update)
+	if (!texture.update && !app.updateVisualElements)
 		return;
 
 	app.WriteToBuffer(texture.buffer, { texture.size.x, texture.size.y }, { texture.region.left, texture.region.top, texture.region.right, texture.region.bottom });
 
 	texture.update = false;
+	app.updateVisualElements = false;
+}
+
+void Canvas::Save(std::ofstream& fout) {
+	fout << std::setbase(16);
+
+	for (short y = 0; y < texture.size.y; ++y) {
+		for (short x = 0; x < texture.size.x; ++x)
+			fout << texture.GetPixel(Vec2(x, y)).Char.UnicodeChar << " " << texture.GetPixel(Vec2(x, y)).Attributes << " ";
+		fout << "\n";
+	}
+}
+
+void Canvas::Load(std::ifstream& fin) {
+	fin >> std::setbase(16);
+
+	for (short y = 0; y < texture.size.y; ++y)
+		for (short x = 0; x < texture.size.x; ++x) {
+			int glyph;
+			short color;
+
+			fin >> glyph >> color;
+
+			texture.SetPixel(Vec2(x, y), (Glyph)glyph, (Color)color);
+		}
+}
+
+void Canvas::UpdateTimeline() {
+	if (!updateTimeline)
+		return;
+
+	if (!timeline.empty() && currentTimePoint != timeline.end() - 1)
+			timeline.erase(currentTimePoint + 1, timeline.end());
+
+	if (timeline.size() == maxNumOfTimePoints)
+		timeline.pop_front();
+
+	timeline.push_back(tempTimePoint);
+	currentTimePoint = timeline.end() - 1;
+
+	tempTimePoint.oldState.clear();
+	tempTimePoint.newState.clear();
+
+	updateTimeline = false;
+}
+
+void Canvas::Undo() {
+	if (timeline.empty())
+		return;
+
+	for (std::set<Pixel>::iterator pixel = currentTimePoint->oldState.begin(); pixel != currentTimePoint->oldState.end(); pixel++)
+		texture.SetPixel(pixel->position, (Glyph)pixel->data.Char.UnicodeChar, (Color)pixel->data.Attributes);
+
+	if (currentTimePoint != timeline.begin())
+		currentTimePoint--;
+}
+
+void Canvas::Redo() {
+	if (timeline.empty())
+		return;
+
+	if (currentTimePoint != timeline.end() - 1)
+		currentTimePoint++;
+
+	for (std::set<Pixel>::iterator pixel = currentTimePoint->newState.begin(); pixel != currentTimePoint->newState.end(); pixel++)
+		texture.SetPixel(pixel->position, (Glyph)pixel->data.Char.UnicodeChar, (Color)pixel->data.Attributes);
 }
 
 void Canvas::Draw(Vec2 vec2, Glyph glyph, Color color) {
+	Pixel pixel;
+	pixel.position = vec2;
+	pixel.data = texture.GetPixel(vec2);
+
+	tempTimePoint.oldState.insert(pixel);
+
 	texture.SetPixel(vec2, glyph, color);
+
+	pixel.data = { glyph, color };
+
+	tempTimePoint.newState.insert(pixel);
+
+	updateTimeline = true;
 }
 
 void Canvas::Line(Vec2 start, Vec2 end, Glyph glyph, Color color) {
@@ -277,10 +358,12 @@ void Canvas::Bucket(Vec2 vec2, Glyph glyph, Color color) {
 
 void Canvas::Picker(Paint& app, Vec2 vec2) {
 	app.ChangeGlyph(texture.GetPixel(vec2).Char.UnicodeChar);
-	app.ChangeFGColor(texture.GetPixel(vec2).Attributes);
-	app.ChangeBGColor(texture.GetPixel(vec2).Attributes);
+	app.ChangeFGColor((Color)(texture.GetPixel(vec2).Attributes << 12 >> 12));
+	app.ChangeBGColor((Color)(texture.GetPixel(vec2).Attributes) >> 4 << 4);
 }
 
 void Canvas::Clear() {
-	texture.Clear();
+	for (short x = 0; x < texture.size.x; ++x)
+		for (short y = 0; y < texture.size.y; ++y)
+			Draw(Vec2(x, y), EMPTY_GLYPH, 0x0000);
 }
