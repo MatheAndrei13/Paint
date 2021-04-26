@@ -9,6 +9,7 @@ class Paint;
 
 class Canvas {
 	Texture texture;
+	Texture copyTexture;
 
 	using Pixel = struct { Vec2 position; CHAR_INFO data; };
 	using TimePoint = struct { std::set<Pixel> oldState, newState; };
@@ -58,7 +59,12 @@ public:
 
 	void Bucket(Vec2 vec2, Glyph glyph, Color color);
 
-	void Picker(Paint& app, Vec2 vec2);
+	void Picker(Vec2 vec2, Paint& app);
+
+	void Selection(Vec2 start, Vec2 end, Paint& app);
+	void Copy(Vec2 start, Vec2 end);
+	void Paste(Vec2 vec2, Paint& app);
+	void PasteBlueprint(Vec2 vec2, Paint& app);
 
 	void Clear();
 };

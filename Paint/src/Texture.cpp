@@ -8,10 +8,7 @@ Texture::Texture() {
 }
 
 Texture::~Texture() {
-	if (buffer != nullptr) {
-		delete[] buffer;
-		buffer = nullptr;
-	}
+	Reset();
 }
 
 bool Texture::inBounds(Vec2 vec2) const {
@@ -25,6 +22,17 @@ void Texture::Init(Vec2 size, Rect region) {
 	update = true;
 
 	Clear();
+}
+
+void Texture::Reset() {
+	if (buffer != nullptr) {
+		delete[] buffer;
+		buffer = nullptr;
+	}
+
+	size = Vec2(0, 0);
+	region = Rect(0, 0, 0, 0);
+	update = false;
 }
 
 void Texture::SetPixel(Vec2 vec2, Glyph glyph, Color color) {

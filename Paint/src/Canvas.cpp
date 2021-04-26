@@ -356,10 +356,99 @@ void Canvas::Bucket(Vec2 vec2, Glyph glyph, Color color) {
 	}
 }
 
-void Canvas::Picker(Paint& app, Vec2 vec2) {
+void Canvas::Picker(Vec2 vec2, Paint& app) {
 	app.ChangeGlyph(texture.GetPixel(vec2).Char.UnicodeChar);
 	app.ChangeFGColor((Color)(texture.GetPixel(vec2).Attributes << 12 >> 12));
 	app.ChangeBGColor((Color)(texture.GetPixel(vec2).Attributes) >> 4 << 4);
+}
+
+void Canvas::Selection(Vec2 start, Vec2 end, Paint& app) {
+	if (start.x <= end.x && start.y > end.y) {
+		short aux = start.y;
+		start.y = end.y;
+		end.y = aux;
+	}
+	else if (start.x > end.x && start.y <= end.y) {
+		short aux = start.x;
+		start.x = end.x;
+		end.x = aux;
+	}
+	else if (start.x > end.x && start.y > end.y) {
+		Vec2 aux = start;
+		start = end;
+		end = aux;
+	}
+
+	for (short x = start.x; x <= end.x; ++x) {
+		if (inBounds(Vec2(x, start.y)))
+			app.SetPixel(Vec2(x, start.y - 1), L'\u2500', 0x000F);
+		if (inBounds(Vec2(x, end.y)))
+			app.SetPixel(Vec2(x, end.y + 1), L'\u2500', 0x000F);
+	}
+	for (short y = start.y; y <= end.y; ++y) {
+		if (inBounds(Vec2(start.x, y)))
+			app.SetPixel(Vec2(start.x - 1, y), L'\u2502', 0x000F);
+		if (inBounds(Vec2(end.x, y)))
+			app.SetPixel(Vec2(end.x + 1, y), L'\u2502', 0x000F);
+	}
+
+	app.SetPixel(Vec2(start.x - 1, start.y - 1), L'\u250c', 0x000F);
+	app.SetPixel(Vec2(end.x + 1, start.y - 1), L'\u2510', 0x000F);
+	app.SetPixel(Vec2(start.x - 1, end.y + 1), L'\u2514', 0x000F);
+	app.SetPixel(Vec2(end.x + 1, end.y + 1), L'\u2518', 0x000F);
+
+	texture.update = true;
+}
+
+void Canvas::Copy(Vec2 start, Vec2 end) {
+	if (start.x <= end.x && start.y > end.y) {
+		short aux = start.y;
+		start.y = end.y;
+		end.y = aux;
+	}
+	else if (start.x > end.x && start.y <= end.y) {
+		short aux = start.x;
+		start.x = end.x;
+		end.x = aux;
+	}
+	else if (start.x > end.x && start.y > end.y) {
+		Vec2 aux = start;
+		start = end;
+		end = aux;
+	}
+
+	copyTexture.Reset();
+
+	copyTexture.Init(Vec2(end.x - start.x + 1, end.y - start.y + 1), Rect(0, 0, 0, 0));
+
+	for (short x = 0; x < copyTexture.size.x; ++x)
+		for (short y = 0; y < copyTexture.size.y; ++y)
+			copyTexture.SetPixel(Vec2(x, y), texture.GetPixel(Vec2(x + start.x, y + start.y)).Char.UnicodeChar, (Color)texture.GetPixel(Vec2(x + start.x, y + start.y)).Attributes);
+}
+
+void Canvas::Paste(Vec2 vec2, Paint& app) {
+	if (copyTexture.buffer == nullptr)
+		return;
+
+	copyTexture.region = Rect(vec2.x, vec2.y, vec2.x + copyTexture.size.x - 1, vec2.y + copyTexture.size.y - 1);
+
+	for (short x = 0; x < copyTexture.size.x; ++x)
+		for (short y = 0; y < copyTexture.size.y; ++y)
+			Draw(Vec2(x + copyTexture.region.left, y + copyTexture.region.top), copyTexture.GetPixel(Vec2(x, y)).Char.UnicodeChar, (Color)copyTexture.GetPixel(Vec2(x, y)).Attributes);
+}
+
+void Canvas::PasteBlueprint(Vec2 vec2, Paint& app) {
+	if (copyTexture.buffer == nullptr)
+		return;
+
+	copyTexture.region = Rect(vec2.x, vec2.y, vec2.x + copyTexture.size.x - 1, vec2.y + copyTexture.size.y - 1);
+
+	for (short x = 0; x < copyTexture.size.x; ++x)
+		for (short y = 0; y < copyTexture.size.y; ++y)
+			if (inBounds(Vec2(x + copyTexture.region.left, y + copyTexture.region.top)))
+				app.SetPixel(Vec2(x + copyTexture.region.left, y + copyTexture.region.top), copyTexture.GetPixel(Vec2(x, y)).Char.UnicodeChar, (Color)copyTexture.GetPixel(Vec2(x, y)).Attributes);
+	
+	texture.update = true;
 }
 
 void Canvas::Clear() {

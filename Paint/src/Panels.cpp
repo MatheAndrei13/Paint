@@ -568,6 +568,14 @@ void ToolPanel::ChangeTool(TOOL tool) {
 		pickerButton.SetPixel(Vec2(pickerButton.size.x - 1, 0), L'\u25a1', color);
 		break;
 
+	case TOOL::Copy:
+		copyButton.SetPixel(Vec2(copyButton.size.x - 1, 0), L'\u25a1', color);
+		break;
+
+	case TOOL::Paste:
+		pasteButton.SetPixel(Vec2(pasteButton.size.x - 1, 0), L'\u25a1', color);
+		break;
+
 	default:
 		break;
 	}
@@ -597,6 +605,14 @@ void ToolPanel::ChangeTool(TOOL tool) {
 		pickerButton.SetPixel(Vec2(pickerButton.size.x - 1, 0), L'\u25a0', color);
 		break;
 
+	case TOOL::Copy:
+		copyButton.SetPixel(Vec2(copyButton.size.x - 1, 0), L'\u25a0', color);
+		break;
+
+	case TOOL::Paste:
+		pasteButton.SetPixel(Vec2(pasteButton.size.x - 1, 0), L'\u25a0', color);
+		break;
+
 	default:
 		break;
 	}
@@ -617,6 +633,10 @@ void ToolPanel::SelectTool(Paint& app, Vec2 mousePosition) {
 		app.ChangeTool(TOOL::Bucket);
 	else if (pickerButton.inBounds(mousePosition))
 		app.ChangeTool(TOOL::Picker);
+	else if (copyButton.inBounds(mousePosition))
+		app.ChangeTool(TOOL::Copy);
+	else if (pasteButton.inBounds(mousePosition))
+		app.ChangeTool(TOOL::Paste);
 }
 
 void ToolPanel::PressButton(Paint& app, Vec2 mousePosition) {

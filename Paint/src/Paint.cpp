@@ -97,7 +97,7 @@ void Paint::CheckMouseInput() {
 				break;
 
 			case TOOL::Picker:
-				canvas.Picker(*this, mousePosition);
+				canvas.Picker(mousePosition, *this);
 				break;
 
 			default:
@@ -122,6 +122,14 @@ void Paint::CheckMouseInput() {
 
 			case TOOL::Ellipse:
 				canvas.Ellipse(originPoint, mousePosition, glyph, fgColor | bgColor);
+				break;
+
+			case TOOL::Copy:
+				canvas.Copy(originPoint, mousePosition);
+				break;
+
+			case TOOL::Paste:
+				canvas.Paste(mousePosition, *this);
 				break;
 
 			default:
@@ -156,8 +164,11 @@ void Paint::CheckMouseInput() {
 }
 
 void Paint::DrawBlueprints() {
-	if (KeyPressed(VK_LBUTTON)) { // Left Click
-		if (canvas.inBounds(mousePosition)) {
+	if (canvas.inBounds(mousePosition)) {
+		if (tool == TOOL::Paste)
+			canvas.PasteBlueprint(mousePosition, *this);
+
+		if (KeyPressed(VK_LBUTTON)) { // Left Click
 			switch (tool) {
 			case TOOL::Line:
 				canvas.LineBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
@@ -171,12 +182,14 @@ void Paint::DrawBlueprints() {
 				canvas.EllipseBlueprint(originPoint, mousePosition, glyph, fgColor | bgColor, *this);
 				break;
 
+			case TOOL::Copy:
+				canvas.Selection(originPoint, mousePosition, *this);
+				break;
+
 			default:
 				break;
 			}
 		}
-		else
-			resetOriginPoint = true;
 	}
 }
 
