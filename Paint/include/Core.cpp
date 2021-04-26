@@ -90,7 +90,7 @@ void ConsoleApp::Create(std::wstring appName, short screenWidth, short screenHei
 	}
 
 	// Disable Maximizing & Resizing Window
-	HWND consoleWindow = GetConsoleWindow();
+	consoleWindow = GetConsoleWindow();
 	LONG windowStyle = GetWindowLong(consoleWindow, GWL_STYLE);
 	SetWindowLong(consoleWindow, GWL_STYLE, windowStyle & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
 
@@ -143,7 +143,7 @@ void ConsoleApp::ResetConsole() {
 	SetConsoleCursorInfo(handleOut, &cursorInfo);
 
 	// Disable Maximizing & Resizing Window
-	HWND consoleWindow = GetConsoleWindow();
+	consoleWindow = GetConsoleWindow();
 	LONG windowStyle = GetWindowLong(consoleWindow, GWL_STYLE);
 	SetWindowLong(consoleWindow, GWL_STYLE, windowStyle | WS_MAXIMIZEBOX | WS_SIZEBOX);
 }
@@ -220,7 +220,8 @@ void ConsoleApp::Run() {
 		auto startFrameTime = std::chrono::high_resolution_clock::now();
 
 		// Get Input
-		GetInput();
+		if (consoleWindow == GetForegroundWindow())
+			GetInput();
 
 		// OnUpdate
 		OnUpdate();

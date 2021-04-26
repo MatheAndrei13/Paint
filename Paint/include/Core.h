@@ -6,6 +6,7 @@
 class ConsoleApp {
 private:
 	std::wstring appName;
+	HWND consoleWindow;
 	HANDLE handleIn;
 	HANDLE handleOut;
 	SMALL_RECT windowSize;
