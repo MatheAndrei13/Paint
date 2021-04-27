@@ -41,7 +41,8 @@ public:
 	void Save(std::ofstream& fout);
 	void Load(std::ifstream& fin);
 
-	void UpdateTimeline();
+	void AddTimePoint();
+	void ResetTimeline();
 
 	void Undo();
 	void Redo();

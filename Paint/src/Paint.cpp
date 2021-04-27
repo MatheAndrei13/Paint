@@ -139,7 +139,7 @@ void Paint::CheckMouseInput() {
 		}
 
 		// Update Timeline
-		canvas.UpdateTimeline();
+		canvas.AddTimePoint();
 
 		// Press Button from Image Panel
 		if (imagePanel.inBounds(mousePosition))
@@ -234,6 +234,7 @@ void Paint::CheckKeyboardInput() {
 void Paint::New() {
 	ChangeImageName("");
 	canvas.Clear();
+	canvas.ResetTimeline();
 }
 
 void Paint::Save() {

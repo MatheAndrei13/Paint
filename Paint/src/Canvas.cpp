@@ -49,7 +49,7 @@ void Canvas::Load(std::ifstream& fin) {
 		}
 }
 
-void Canvas::UpdateTimeline() {
+void Canvas::AddTimePoint() {
 	if (!updateTimeline)
 		return;
 
@@ -68,6 +68,13 @@ void Canvas::UpdateTimeline() {
 	updateTimeline = false;
 }
 
+void Canvas::ResetTimeline() {
+	timeline.clear();
+	tempTimePoint.oldState.clear();
+	tempTimePoint.newState.clear();
+	updateTimeline = false;
+}
+
 void Canvas::Undo() {
 	if (timeline.empty())
 		return;
@@ -82,6 +89,10 @@ void Canvas::Undo() {
 void Canvas::Redo() {
 	if (timeline.empty())
 		return;
+
+	if (currentTimePoint == timeline.begin())
+		for (std::set<Pixel>::iterator pixel = currentTimePoint->newState.begin(); pixel != currentTimePoint->newState.end(); pixel++)
+			texture.SetPixel(pixel->position, (Glyph)pixel->data.Char.UnicodeChar, (Color)pixel->data.Attributes);
 
 	if (currentTimePoint != timeline.end() - 1)
 		currentTimePoint++;
