@@ -16,6 +16,8 @@ class Paint : public ConsoleApp {
 	GlyphPanel glyphPanel;
 	PalettePanel palettePanel;
 
+	ShortcutsPanel shortcutsPanel;
+
 	InputPanel NewImageNamePanel;
 	InputPanel SavedImageNamePanel;
 
@@ -48,6 +50,8 @@ public:
 	void New();
 	void Save();
 	void Load(std::string image);
+
+	void Shortcuts();
 
 	void Undo();
 	void Redo();

@@ -10,10 +10,10 @@ class ImagePanel {
 	Color color;
 
 	Texture newButton;
-	Texture resizeButton;
 	Texture saveButton;
 	Texture loadButton;
 	Texture exitButton;
+	Texture shortcutButton;
 
 public:
 	ImagePanel();
@@ -28,6 +28,53 @@ private:
 
 public:
 	void PressButton(Paint& app, Vec2 mousePosition);
+};
+
+class ShortcutsPanel {
+	std::wstring name;
+	Texture texture;
+	Color color;
+
+	Texture newShortcutLabel;
+	Texture saveShortcutLabel;
+	Texture loadShortcutLabel;
+	Texture exitShortcutLabel;
+	Texture increaseFontSizeShortcutLabel;
+	Texture decreaseFontSizeShortcutLabel;
+	Texture nextFGColorShortcutLabel;
+	Texture prevFGColorShortcutLabel;
+	Texture nextBGColorShortcutLabel;
+	Texture prevBGColorShortcutLabel;
+	Texture undoShortcutLabel;
+	Texture redoShortcutLabel;
+	Texture pencilShortcutLabel;
+	Texture eraserShortcutLabel;
+	Texture lineShortcutLabel;
+	Texture rectangleShortcutLabel;
+	Texture ellipseShortcutLabel;
+	Texture bucketShortcutLabel;
+	Texture pickerShortcutLabel;
+	Texture copyShortcutLabel;
+	Texture pasteShortcutLabel;
+	Texture clearShortcutLabel;
+
+public:
+	bool active;
+
+public:
+	ShortcutsPanel();
+
+	bool inBounds(Vec2 vec2) const;
+
+	void Init(std::wstring name, Vec2 size, Rect region, Color color);
+	void Update(Paint& app);
+
+private:
+	void DrawShortcutLabels();
+
+public:
+	void Show();
+	void Hide(Paint& app);
 };
 
 class InfoPanel {
@@ -68,6 +115,7 @@ class ToolPanel {
 	TOOL selectedTool;
 
 	Texture pencilButton;
+	Texture eraserButton;
 	Texture lineButton;
 	Texture rectangleButton;
 	Texture ellipseButton;

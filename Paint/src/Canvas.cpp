@@ -4,6 +4,7 @@
 #include <iomanip>
 
 Canvas::Canvas() {
+	timePointIdx = -1;
 	updateTimeline = false;
 }
 
@@ -53,14 +54,16 @@ void Canvas::AddTimePoint() {
 	if (!updateTimeline)
 		return;
 
-	if (!timeline.empty() && currentTimePoint != timeline.end() - 1)
-			timeline.erase(currentTimePoint + 1, timeline.end());
+	if (!timeline.empty() && timePointIdx < (short)timeline.size() - 1)
+			timeline.erase(timeline.begin() + (timePointIdx + 1), timeline.end());
 
-	if (timeline.size() == maxNumOfTimePoints)
+	if (timeline.size() == maxNumOfTimePoints) {
 		timeline.pop_front();
+		timePointIdx--;
+	}
 
 	timeline.push_back(tempTimePoint);
-	currentTimePoint = timeline.end() - 1;
+	timePointIdx++;
 
 	tempTimePoint.oldState.clear();
 	tempTimePoint.newState.clear();
@@ -70,34 +73,29 @@ void Canvas::AddTimePoint() {
 
 void Canvas::ResetTimeline() {
 	timeline.clear();
+	timePointIdx = -1;
 	tempTimePoint.oldState.clear();
 	tempTimePoint.newState.clear();
 	updateTimeline = false;
 }
 
 void Canvas::Undo() {
-	if (timeline.empty())
+	if (timeline.empty() || timePointIdx < 0)
 		return;
 
-	for (std::set<Pixel>::iterator pixel = currentTimePoint->oldState.begin(); pixel != currentTimePoint->oldState.end(); pixel++)
+	for (std::set<Pixel>::iterator pixel = (timeline.begin() + timePointIdx)->oldState.begin(); pixel != (timeline.begin() + timePointIdx)->oldState.end(); pixel++)
 		texture.SetPixel(pixel->position, (Glyph)pixel->data.Char.UnicodeChar, (Color)pixel->data.Attributes);
 
-	if (currentTimePoint != timeline.begin())
-		currentTimePoint--;
+	timePointIdx--;
 }
 
 void Canvas::Redo() {
-	if (timeline.empty())
+	if (timeline.empty() || timePointIdx == timeline.size() - 1)
 		return;
+	
+	timePointIdx++;
 
-	if (currentTimePoint == timeline.begin())
-		for (std::set<Pixel>::iterator pixel = currentTimePoint->newState.begin(); pixel != currentTimePoint->newState.end(); pixel++)
-			texture.SetPixel(pixel->position, (Glyph)pixel->data.Char.UnicodeChar, (Color)pixel->data.Attributes);
-
-	if (currentTimePoint != timeline.end() - 1)
-		currentTimePoint++;
-
-	for (std::set<Pixel>::iterator pixel = currentTimePoint->newState.begin(); pixel != currentTimePoint->newState.end(); pixel++)
+	for (std::set<Pixel>::iterator pixel = (timeline.begin() + timePointIdx)->newState.begin(); pixel != (timeline.begin() + timePointIdx)->newState.end(); pixel++)
 		texture.SetPixel(pixel->position, (Glyph)pixel->data.Char.UnicodeChar, (Color)pixel->data.Attributes);
 }
 

@@ -51,14 +51,14 @@ void ImagePanel::Init(std::wstring name, Vec2 size, Rect region, Color color) {
 	texture.SetPixel(Vec2(namePosition - 1, 0), L'\u2524', color);
 	texture.SetPixel(Vec2(namePosition + nameLength, 0), L'\u251C', color);
 
-	// Initialize Labels
+	// Initialize Buttons
 	newButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 1, texture.region.right - 1, texture.region.top + 1));
-	resizeButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 2, texture.region.right - 1, texture.region.top + 2));
-	saveButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 3, texture.region.right - 1, texture.region.top + 3));
-	loadButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 4, texture.region.right - 1, texture.region.top + 4));
-	exitButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 6, texture.region.right - 1, texture.region.top + 6));
+	saveButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 2, texture.region.right - 1, texture.region.top + 2));
+	loadButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 3, texture.region.right - 1, texture.region.top + 3));
+	exitButton.Init(Vec2(8, 1), Rect(texture.region.left + 1, texture.region.top + 5, texture.region.right - 2, texture.region.top + 5));
+	shortcutButton.Init(Vec2(1, 1), Rect(texture.region.right - 1, texture.region.top + 5, texture.region.right - 1, texture.region.top + 5));
 
-	// Draw Labels
+	// Draw Buttons
 	DrawButtons();
 }
 
@@ -72,11 +72,6 @@ void ImagePanel::Update(Paint& app) {
 	if (newButton.update || app.updateVisualElements) {
 		app.WriteToBuffer(newButton.buffer, { newButton.size.x, newButton.size.y }, { newButton.region.left, newButton.region.top, newButton.region.right, newButton.region.bottom });
 		newButton.update = false;
-		app.updateVisualElements = false;
-	}
-	if (resizeButton.update || app.updateVisualElements) {
-		app.WriteToBuffer(resizeButton.buffer, { resizeButton.size.x, resizeButton.size.y }, { resizeButton.region.left, resizeButton.region.top, resizeButton.region.right, resizeButton.region.bottom });
-		resizeButton.update = false;
 		app.updateVisualElements = false;
 	}
 	if (saveButton.update || app.updateVisualElements) {
@@ -94,26 +89,25 @@ void ImagePanel::Update(Paint& app) {
 		exitButton.update = false;
 		app.updateVisualElements = false;
 	}
+	if (shortcutButton.update || app.updateVisualElements) {
+		app.WriteToBuffer(shortcutButton.buffer, { shortcutButton.size.x, shortcutButton.size.y }, { shortcutButton.region.left, shortcutButton.region.top, shortcutButton.region.right, shortcutButton.region.bottom });
+		shortcutButton.update = false;
+		app.updateVisualElements = false;
+	}
 }
 
 void ImagePanel::DrawButtons() {
 	std::wstring newText = L"New";
-	std::wstring resizeText = L"Resize";
 	std::wstring saveText = L"Save";
 	std::wstring loadText = L"Load";
 	std::wstring exitText = L"Exit";
+	std::wstring shortcutText = L"?";
 
 	// New Button (Text + Background)
 	for (short i = 0; i < (short)newText.length(); ++i)
 		newButton.SetPixel(Vec2(i, 0), newText.at(i), color);
 	for (short i = (short)newText.length(); i < newButton.size.x; ++i)
 		newButton.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
-
-	// Resize Button (Text + Background)
-	for (short i = 0; i < (short)resizeText.length(); ++i)
-		resizeButton.SetPixel(Vec2(i, 0), resizeText.at(i), color);
-	for (short i = (short)resizeText.length(); i < resizeButton.size.x; ++i)
-		resizeButton.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
 
 	// Save Button (Text + Background)
 	for (short i = 0; i < (short)saveText.length(); ++i)
@@ -132,6 +126,12 @@ void ImagePanel::DrawButtons() {
 		exitButton.SetPixel(Vec2(i, 0), exitText.at(i), color);
 	for (short i = (short)exitText.length(); i < exitButton.size.x; ++i)
 		exitButton.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Shortcut Button (Text + Background)
+	for (short i = 0; i < (short)shortcutText.length(); ++i)
+		shortcutButton.SetPixel(Vec2(i, 0), shortcutText.at(i), color);
+	for (short i = (short)shortcutText.length(); i < shortcutButton.size.x; ++i)
+		shortcutButton.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
 }
 
 void ImagePanel::PressButton(Paint& app, Vec2 mousePosition) {
@@ -143,6 +143,287 @@ void ImagePanel::PressButton(Paint& app, Vec2 mousePosition) {
 		app.Load("");
 	else if (exitButton.inBounds(mousePosition))
 		app.Close();
+	else if (shortcutButton.inBounds(mousePosition))
+		app.Shortcuts();
+}
+
+
+
+
+/* ####### SHORTCUTS PANEL ####### */
+
+ShortcutsPanel::ShortcutsPanel() {
+	active = false;
+	color = 0x0000;
+}
+
+bool ShortcutsPanel::inBounds(Vec2 vec2) const {
+	return texture.inBounds(vec2);
+}
+
+void ShortcutsPanel::Init(std::wstring name, Vec2 size, Rect region, Color color) {
+	texture.Init(size, region);
+
+	this->name = name;
+	this->color = color;
+
+	// Draw Panel Frame
+	// Center
+	for (short x = 1; x < size.x - 1; ++x)
+		for (short y = 1; y < size.y - 1; ++y)
+			texture.SetPixel(Vec2(x, y), EMPTY_GLYPH, color);
+
+	// Edges
+	for (short x = 1; x < size.x - 1; ++x) {
+		texture.SetPixel(Vec2(x, 0), L'\u2500', color);
+		texture.SetPixel(Vec2(x, size.y - 1), L'\u2500', color);
+	}
+
+	for (short y = 1; y < size.y - 1; ++y) {
+		texture.SetPixel(Vec2(0, y), L'\u2502', color);
+		texture.SetPixel(Vec2(size.x - 1, y), L'\u2502', color);
+	}
+
+	// Corners
+	texture.SetPixel(Vec2(0, 0), L'\u250C', color);
+	texture.SetPixel(Vec2(size.x - 1, 0), L'\u2510', color);
+	texture.SetPixel(Vec2(0, size.y - 1), L'\u2514', color);
+	texture.SetPixel(Vec2(size.x - 1, size.y - 1), L'\u2518', color);
+
+	// Write Panel Name
+	short nameLength = (short)name.length();
+	short namePosition = size.x / 2 - nameLength / 2;
+	for (short i = 0; i < (short)nameLength; ++i)
+		texture.SetPixel(Vec2(namePosition + i, 0), name.at(i), color);
+
+	texture.SetPixel(Vec2(namePosition - 1, 0), L'\u2524', color);
+	texture.SetPixel(Vec2(namePosition + nameLength, 0), L'\u251C', color);
+
+	// Initialize Labels
+	newShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 1, texture.region.right - 1, texture.region.top + 1));
+	saveShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 2, texture.region.right - 1, texture.region.top + 2));
+	loadShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 3, texture.region.right - 1, texture.region.top + 3));
+	exitShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 4, texture.region.right - 1, texture.region.top + 4));
+	increaseFontSizeShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 6, texture.region.right - 1, texture.region.top + 6));
+	decreaseFontSizeShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 7, texture.region.right - 1, texture.region.top + 7));
+	nextFGColorShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 9, texture.region.right - 1, texture.region.top + 9));
+	prevFGColorShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 10, texture.region.right - 1, texture.region.top + 10));
+	nextBGColorShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 11, texture.region.right - 1, texture.region.top + 11));
+	prevBGColorShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 12, texture.region.right - 1, texture.region.top + 12));
+	undoShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 14, texture.region.right - 1, texture.region.top + 14));
+	redoShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 15, texture.region.right - 1, texture.region.top + 15));
+	pencilShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 17, texture.region.right - 1, texture.region.top + 17));
+	eraserShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 18, texture.region.right - 1, texture.region.top + 18));
+	lineShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 19, texture.region.right - 1, texture.region.top + 19));
+	rectangleShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 20, texture.region.right - 1, texture.region.top + 20));
+	ellipseShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 21, texture.region.right - 1, texture.region.top + 21));
+	bucketShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 22, texture.region.right - 1, texture.region.top + 22));
+	pickerShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 23, texture.region.right - 1, texture.region.top + 23));
+	copyShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 25, texture.region.right - 1, texture.region.top + 25));
+	pasteShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 26, texture.region.right - 1, texture.region.top + 26));
+	clearShortcutLabel.Init(Vec2(28, 1), Rect(texture.region.left + 1, texture.region.top + 28, texture.region.right - 1, texture.region.top + 28));
+
+	// Draw Labels
+	DrawShortcutLabels();
+}
+
+void ShortcutsPanel::Update(Paint& app) {
+	if (!active || !texture.update)
+		return;
+
+	app.WriteToBuffer(texture.buffer, { texture.size.x, texture.size.y }, { texture.region.left, texture.region.top, texture.region.right, texture.region.bottom });
+
+	app.WriteToBuffer(newShortcutLabel.buffer, { newShortcutLabel.size.x, newShortcutLabel.size.y }, { newShortcutLabel.region.left, newShortcutLabel.region.top, newShortcutLabel.region.right, newShortcutLabel.region.bottom });
+	app.WriteToBuffer(saveShortcutLabel.buffer, { saveShortcutLabel.size.x, saveShortcutLabel.size.y }, { saveShortcutLabel.region.left, saveShortcutLabel.region.top, saveShortcutLabel.region.right, saveShortcutLabel.region.bottom });
+	app.WriteToBuffer(loadShortcutLabel.buffer, { loadShortcutLabel.size.x, loadShortcutLabel.size.y }, { loadShortcutLabel.region.left, loadShortcutLabel.region.top, loadShortcutLabel.region.right, loadShortcutLabel.region.bottom });
+	app.WriteToBuffer(exitShortcutLabel.buffer, { exitShortcutLabel.size.x, exitShortcutLabel.size.y }, { exitShortcutLabel.region.left, exitShortcutLabel.region.top, exitShortcutLabel.region.right, exitShortcutLabel.region.bottom });
+	app.WriteToBuffer(increaseFontSizeShortcutLabel.buffer, { increaseFontSizeShortcutLabel.size.x, increaseFontSizeShortcutLabel.size.y }, { increaseFontSizeShortcutLabel.region.left, increaseFontSizeShortcutLabel.region.top, increaseFontSizeShortcutLabel.region.right, increaseFontSizeShortcutLabel.region.bottom });
+	app.WriteToBuffer(decreaseFontSizeShortcutLabel.buffer, { decreaseFontSizeShortcutLabel.size.x, decreaseFontSizeShortcutLabel.size.y }, { decreaseFontSizeShortcutLabel.region.left, decreaseFontSizeShortcutLabel.region.top, decreaseFontSizeShortcutLabel.region.right, decreaseFontSizeShortcutLabel.region.bottom });
+	app.WriteToBuffer(nextFGColorShortcutLabel.buffer, { nextFGColorShortcutLabel.size.x, nextFGColorShortcutLabel.size.y }, { nextFGColorShortcutLabel.region.left, nextFGColorShortcutLabel.region.top, nextFGColorShortcutLabel.region.right, nextFGColorShortcutLabel.region.bottom });
+	app.WriteToBuffer(prevFGColorShortcutLabel.buffer, { prevFGColorShortcutLabel.size.x, prevFGColorShortcutLabel.size.y }, { prevFGColorShortcutLabel.region.left, prevFGColorShortcutLabel.region.top, prevFGColorShortcutLabel.region.right, prevFGColorShortcutLabel.region.bottom });
+	app.WriteToBuffer(nextBGColorShortcutLabel.buffer, { nextBGColorShortcutLabel.size.x, nextBGColorShortcutLabel.size.y }, { nextBGColorShortcutLabel.region.left, nextBGColorShortcutLabel.region.top, nextBGColorShortcutLabel.region.right, nextBGColorShortcutLabel.region.bottom });
+	app.WriteToBuffer(prevBGColorShortcutLabel.buffer, { prevBGColorShortcutLabel.size.x, prevBGColorShortcutLabel.size.y }, { prevBGColorShortcutLabel.region.left, prevBGColorShortcutLabel.region.top, prevBGColorShortcutLabel.region.right, prevBGColorShortcutLabel.region.bottom });
+	app.WriteToBuffer(undoShortcutLabel.buffer, { undoShortcutLabel.size.x, undoShortcutLabel.size.y }, { undoShortcutLabel.region.left, undoShortcutLabel.region.top, undoShortcutLabel.region.right, undoShortcutLabel.region.bottom });
+	app.WriteToBuffer(redoShortcutLabel.buffer, { redoShortcutLabel.size.x, redoShortcutLabel.size.y }, { redoShortcutLabel.region.left, redoShortcutLabel.region.top, redoShortcutLabel.region.right, redoShortcutLabel.region.bottom });
+	app.WriteToBuffer(pencilShortcutLabel.buffer, { pencilShortcutLabel.size.x, pencilShortcutLabel.size.y }, { pencilShortcutLabel.region.left, pencilShortcutLabel.region.top, pencilShortcutLabel.region.right, pencilShortcutLabel.region.bottom });
+	app.WriteToBuffer(eraserShortcutLabel.buffer, { eraserShortcutLabel.size.x, eraserShortcutLabel.size.y }, { eraserShortcutLabel.region.left, eraserShortcutLabel.region.top, eraserShortcutLabel.region.right, eraserShortcutLabel.region.bottom });
+	app.WriteToBuffer(lineShortcutLabel.buffer, { lineShortcutLabel.size.x, lineShortcutLabel.size.y }, { lineShortcutLabel.region.left, lineShortcutLabel.region.top, lineShortcutLabel.region.right, lineShortcutLabel.region.bottom });
+	app.WriteToBuffer(rectangleShortcutLabel.buffer, { rectangleShortcutLabel.size.x, rectangleShortcutLabel.size.y }, { rectangleShortcutLabel.region.left, rectangleShortcutLabel.region.top, rectangleShortcutLabel.region.right, rectangleShortcutLabel.region.bottom });
+	app.WriteToBuffer(ellipseShortcutLabel.buffer, { ellipseShortcutLabel.size.x, ellipseShortcutLabel.size.y }, { ellipseShortcutLabel.region.left, ellipseShortcutLabel.region.top, ellipseShortcutLabel.region.right, ellipseShortcutLabel.region.bottom });
+	app.WriteToBuffer(bucketShortcutLabel.buffer, { bucketShortcutLabel.size.x, bucketShortcutLabel.size.y }, { bucketShortcutLabel.region.left, bucketShortcutLabel.region.top, bucketShortcutLabel.region.right, bucketShortcutLabel.region.bottom });
+	app.WriteToBuffer(pickerShortcutLabel.buffer, { pickerShortcutLabel.size.x, pickerShortcutLabel.size.y }, { pickerShortcutLabel.region.left, pickerShortcutLabel.region.top, pickerShortcutLabel.region.right, pickerShortcutLabel.region.bottom });
+	app.WriteToBuffer(copyShortcutLabel.buffer, { copyShortcutLabel.size.x, copyShortcutLabel.size.y }, { copyShortcutLabel.region.left, copyShortcutLabel.region.top, copyShortcutLabel.region.right, copyShortcutLabel.region.bottom });
+	app.WriteToBuffer(pasteShortcutLabel.buffer, { pasteShortcutLabel.size.x, pasteShortcutLabel.size.y }, { pasteShortcutLabel.region.left, pasteShortcutLabel.region.top, pasteShortcutLabel.region.right, pasteShortcutLabel.region.bottom });
+	app.WriteToBuffer(clearShortcutLabel.buffer, { clearShortcutLabel.size.x, clearShortcutLabel.size.y }, { clearShortcutLabel.region.left, clearShortcutLabel.region.top, clearShortcutLabel.region.right, clearShortcutLabel.region.bottom });
+
+	texture.update = false;
+}
+
+void ShortcutsPanel::DrawShortcutLabels() {
+	std::wstring newText = L"New                   Ctrl+N";
+	std::wstring saveText = L"Save                  Ctrl+S";
+	std::wstring loadText = L"Load                  Ctrl+O";
+	std::wstring exitText = L"Exit                  Ctrl+Q";
+	std::wstring increaseFontSizeText = L"Increase Font Size         +";
+	std::wstring decreaseFontSizeText = L"Decrease Font Size         -";
+	std::wstring nextFGColorText = L"Next FG Color             up";
+	std::wstring prevFGColorText = L"Previous FG Color       down";
+	std::wstring nextBGColorText = L"Next BG Color          right";
+	std::wstring prevBGColorText = L"Previous BG Color       left";
+	std::wstring undoText = L"Undo                  Ctrl+Z";
+	std::wstring redoText = L"Redo                  Ctrl+Y";
+	std::wstring pencilText = L"Pencil                     P";
+	std::wstring eraserText = L"Eraser                     E";
+	std::wstring lineText = L"Line                       L";
+	std::wstring rectangleText = L"Rectangle                  R";
+	std::wstring ellipseText = L"Ellipse                    O";
+	std::wstring bucketText = L"Bucket                     B";
+	std::wstring pickerText = L"Picker            Left Shift";
+	std::wstring copyText = L"Copy                  Ctrl+C";
+	std::wstring pasteText = L"Paste                 Ctrl+V";
+	std::wstring clearText = L"Clear                 Ctrl+X";
+
+	// New Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)newText.length(); ++i)
+		newShortcutLabel.SetPixel(Vec2(i, 0), newText.at(i), color);
+	for (short i = (short)newText.length(); i < newShortcutLabel.size.x; ++i)
+		newShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Save Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)saveText.length(); ++i)
+		saveShortcutLabel.SetPixel(Vec2(i, 0), saveText.at(i), color);
+	for (short i = (short)saveText.length(); i < saveShortcutLabel.size.x; ++i)
+		saveShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Load Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)loadText.length(); ++i)
+		loadShortcutLabel.SetPixel(Vec2(i, 0), loadText.at(i), color);
+	for (short i = (short)loadText.length(); i < loadShortcutLabel.size.x; ++i)
+		loadShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Exit Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)exitText.length(); ++i)
+		exitShortcutLabel.SetPixel(Vec2(i, 0), exitText.at(i), color);
+	for (short i = (short)exitText.length(); i < exitShortcutLabel.size.x; ++i)
+		exitShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Increase Font Size Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)increaseFontSizeText.length(); ++i)
+		increaseFontSizeShortcutLabel.SetPixel(Vec2(i, 0), increaseFontSizeText.at(i), color);
+	for (short i = (short)increaseFontSizeText.length(); i < increaseFontSizeShortcutLabel.size.x; ++i)
+		increaseFontSizeShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Decrease Font Size Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)decreaseFontSizeText.length(); ++i)
+		decreaseFontSizeShortcutLabel.SetPixel(Vec2(i, 0), decreaseFontSizeText.at(i), color);
+	for (short i = (short)decreaseFontSizeText.length(); i < decreaseFontSizeShortcutLabel.size.x; ++i)
+		decreaseFontSizeShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Next FG Color Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)nextFGColorText.length(); ++i)
+		nextFGColorShortcutLabel.SetPixel(Vec2(i, 0), nextFGColorText.at(i), color);
+	for (short i = (short)nextFGColorText.length(); i < nextFGColorShortcutLabel.size.x; ++i)
+		nextFGColorShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Previous FG Color Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)prevFGColorText.length(); ++i)
+		prevFGColorShortcutLabel.SetPixel(Vec2(i, 0), prevFGColorText.at(i), color);
+	for (short i = (short)prevFGColorText.length(); i < prevFGColorShortcutLabel.size.x; ++i)
+		prevFGColorShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Next BG Color Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)nextBGColorText.length(); ++i)
+		nextBGColorShortcutLabel.SetPixel(Vec2(i, 0), nextBGColorText.at(i), color);
+	for (short i = (short)nextBGColorText.length(); i < nextBGColorShortcutLabel.size.x; ++i)
+		nextBGColorShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Previous BG Color Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)prevBGColorText.length(); ++i)
+		prevBGColorShortcutLabel.SetPixel(Vec2(i, 0), prevBGColorText.at(i), color);
+	for (short i = (short)prevBGColorText.length(); i < prevBGColorShortcutLabel.size.x; ++i)
+		prevBGColorShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Undo Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)undoText.length(); ++i)
+		undoShortcutLabel.SetPixel(Vec2(i, 0), undoText.at(i), color);
+	for (short i = (short)undoText.length(); i < undoShortcutLabel.size.x; ++i)
+		undoShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Redo Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)redoText.length(); ++i)
+		redoShortcutLabel.SetPixel(Vec2(i, 0), redoText.at(i), color);
+	for (short i = (short)redoText.length(); i < redoShortcutLabel.size.x; ++i)
+		redoShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Pencil Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)pencilText.length(); ++i)
+		pencilShortcutLabel.SetPixel(Vec2(i, 0), pencilText.at(i), color);
+	for (short i = (short)pencilText.length(); i < pencilShortcutLabel.size.x; ++i)
+		pencilShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Eraser Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)eraserText.length(); ++i)
+		eraserShortcutLabel.SetPixel(Vec2(i, 0), eraserText.at(i), color);
+	for (short i = (short)eraserText.length(); i < eraserShortcutLabel.size.x; ++i)
+		eraserShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Line Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)lineText.length(); ++i)
+		lineShortcutLabel.SetPixel(Vec2(i, 0), lineText.at(i), color);
+	for (short i = (short)lineText.length(); i < lineShortcutLabel.size.x; ++i)
+		lineShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Rectangle Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)rectangleText.length(); ++i)
+		rectangleShortcutLabel.SetPixel(Vec2(i, 0), rectangleText.at(i), color);
+	for (short i = (short)rectangleText.length(); i < rectangleShortcutLabel.size.x; ++i)
+		rectangleShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Ellipse Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)ellipseText.length(); ++i)
+		ellipseShortcutLabel.SetPixel(Vec2(i, 0), ellipseText.at(i), color);
+	for (short i = (short)ellipseText.length(); i < ellipseShortcutLabel.size.x; ++i)
+		ellipseShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Bucket Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)bucketText.length(); ++i)
+		bucketShortcutLabel.SetPixel(Vec2(i, 0), bucketText.at(i), color);
+	for (short i = (short)bucketText.length(); i < bucketShortcutLabel.size.x; ++i)
+		bucketShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Picker Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)pickerText.length(); ++i)
+		pickerShortcutLabel.SetPixel(Vec2(i, 0), pickerText.at(i), color);
+	for (short i = (short)pickerText.length(); i < pickerShortcutLabel.size.x; ++i)
+		pickerShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Copy Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)copyText.length(); ++i)
+		copyShortcutLabel.SetPixel(Vec2(i, 0), copyText.at(i), color);
+	for (short i = (short)copyText.length(); i < copyShortcutLabel.size.x; ++i)
+		copyShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Paste Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)pasteText.length(); ++i)
+		pasteShortcutLabel.SetPixel(Vec2(i, 0), pasteText.at(i), color);
+	for (short i = (short)pasteText.length(); i < pasteShortcutLabel.size.x; ++i)
+		pasteShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+
+	// Clear Shortcut Label (Text + Background)
+	for (short i = 0; i < (short)clearText.length(); ++i)
+		clearShortcutLabel.SetPixel(Vec2(i, 0), clearText.at(i), color);
+	for (short i = (short)clearText.length(); i < clearShortcutLabel.size.x; ++i)
+		clearShortcutLabel.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+}
+
+void ShortcutsPanel::Show() {
+	active = true;
+	texture.update = true;
+}
+
+void ShortcutsPanel::Hide(Paint& app) {
+	active = false;
+	app.updateVisualElements = true;
 }
 
 
@@ -372,16 +653,17 @@ void ToolPanel::Init(std::wstring name, Vec2 size, Rect region, Color color, TOO
 
 	// Initialize Buttons
 	pencilButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 1, texture.region.right - 1, texture.region.top + 1));
-	lineButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 2, texture.region.right - 1, texture.region.top + 2));
-	rectangleButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 3, texture.region.right - 1, texture.region.top + 3));
-	ellipseButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 4, texture.region.right - 1, texture.region.top + 4));
-	bucketButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 5, texture.region.right - 1, texture.region.top + 5));
-	pickerButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 7, texture.region.right - 1, texture.region.top + 7));
-	copyButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 9, texture.region.right - 1, texture.region.top + 9));
-	pasteButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 10, texture.region.right - 1, texture.region.top + 10));
-	undoButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 12, texture.region.right - 1, texture.region.top + 12));
-	redoButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 13, texture.region.right - 1, texture.region.top + 13));
-	clearButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 15, texture.region.right - 1, texture.region.top + 15));
+	eraserButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 2, texture.region.right - 1, texture.region.top + 2));
+	lineButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 3, texture.region.right - 1, texture.region.top + 3));
+	rectangleButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 4, texture.region.right - 1, texture.region.top + 4));
+	ellipseButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 5, texture.region.right - 1, texture.region.top + 5));
+	bucketButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 6, texture.region.right - 1, texture.region.top + 6));
+	pickerButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 8, texture.region.right - 1, texture.region.top + 8));
+	copyButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 10, texture.region.right - 1, texture.region.top + 10));
+	pasteButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 11, texture.region.right - 1, texture.region.top + 11));
+	undoButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 13, texture.region.right - 1, texture.region.top + 13));
+	redoButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 14, texture.region.right - 1, texture.region.top + 14));
+	clearButton.Init(Vec2(9, 1), Rect(texture.region.left + 1, texture.region.top + 16, texture.region.right - 1, texture.region.top + 16));
 
 	// Draw Buttons
 	DrawButtons();
@@ -400,6 +682,11 @@ void ToolPanel::Update(Paint& app) {
 	if (pencilButton.update || app.updateVisualElements) {
 		app.WriteToBuffer(pencilButton.buffer, { pencilButton.size.x, pencilButton.size.y }, { pencilButton.region.left, pencilButton.region.top, pencilButton.region.right, pencilButton.region.bottom });
 		pencilButton.update = false;
+		app.updateVisualElements = false;
+	}
+	if (eraserButton.update || app.updateVisualElements) {
+		app.WriteToBuffer(eraserButton.buffer, { eraserButton.size.x, eraserButton.size.y }, { eraserButton.region.left, eraserButton.region.top, eraserButton.region.right, eraserButton.region.bottom });
+		eraserButton.update = false;
 		app.updateVisualElements = false;
 	}
 	if (lineButton.update || app.updateVisualElements) {
@@ -456,6 +743,7 @@ void ToolPanel::Update(Paint& app) {
 
 void ToolPanel::DrawButtons() {
 	std::wstring pencilText = L"Pencil";
+	std::wstring eraserText = L"Eraser";
 	std::wstring lineText = L"Line";
 	std::wstring rectangleText = L"Rect";
 	std::wstring ellipseText = L"Ellipse";
@@ -473,6 +761,13 @@ void ToolPanel::DrawButtons() {
 	for (short i = (short)pencilText.length(); i < pencilButton.size.x - 1; ++i)
 		pencilButton.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
 	pencilButton.SetPixel(Vec2(pencilButton.size.x - 1, 0), L'\u25a1', color);
+
+	// Eraser Button (Text + Background + Tick Button)
+	for (short i = 0; i < (short)eraserText.length(); ++i)
+		eraserButton.SetPixel(Vec2(i, 0), eraserText.at(i), color);
+	for (short i = (short)eraserText.length(); i < eraserButton.size.x - 1; ++i)
+		eraserButton.SetPixel(Vec2(i, 0), EMPTY_GLYPH, color);
+	eraserButton.SetPixel(Vec2(eraserButton.size.x - 1, 0), L'\u25a1', color);
 
 	// Line Button (Text + Background + Tick Button)
 	for (short i = 0; i < (short)lineText.length(); ++i)
@@ -548,6 +843,10 @@ void ToolPanel::ChangeTool(TOOL tool) {
 		pencilButton.SetPixel(Vec2(pencilButton.size.x - 1, 0), L'\u25a1', color);
 		break;
 
+	case TOOL::Eraser:
+		eraserButton.SetPixel(Vec2(eraserButton.size.x - 1, 0), L'\u25a1', color);
+		break;
+
 	case TOOL::Line:
 		lineButton.SetPixel(Vec2(lineButton.size.x - 1, 0), L'\u25a1', color);
 		break;
@@ -583,6 +882,10 @@ void ToolPanel::ChangeTool(TOOL tool) {
 	switch (tool) {
 	case TOOL::Pencil:
 		pencilButton.SetPixel(Vec2(pencilButton.size.x - 1, 0), L'\u25a0', color);
+		break;
+
+	case TOOL::Eraser:
+		eraserButton.SetPixel(Vec2(eraserButton.size.x - 1, 0), L'\u25a0', color);
 		break;
 
 	case TOOL::Line:
@@ -623,6 +926,8 @@ void ToolPanel::ChangeTool(TOOL tool) {
 void ToolPanel::SelectTool(Paint& app, Vec2 mousePosition) {
 	if (pencilButton.inBounds(mousePosition))
 		app.ChangeTool(TOOL::Pencil);
+	else if (eraserButton.inBounds(mousePosition))
+		app.ChangeTool(TOOL::Eraser);
 	else if (lineButton.inBounds(mousePosition))
 		app.ChangeTool(TOOL::Line);
 	else if (rectangleButton.inBounds(mousePosition))
@@ -944,7 +1249,7 @@ void InputField::CheckInput(Paint& app) {
 	// Check for Pressed Letter Keys
 	for (char c = 'A'; c <= 'Z'; ++c)
 		if (app.KeyReleased(c))
-			typedCharacter = (app.KeyPressed(VK_LSHIFT) ^ app.CapsLock()) ? c : c + 32;
+			typedCharacter = ((app.KeyPressed(VK_LSHIFT) || app.KeyPressed(VK_RSHIFT)) ^ app.CapsLock()) ? c : c + 32;
 
 	// Check for Space Key
 	if (app.KeyReleased(VK_SPACE) && value != "")

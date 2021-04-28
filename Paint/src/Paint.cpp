@@ -20,11 +20,14 @@ void Paint::OnCreate() {
 	canvas.Init(Vec2(GetScreenWidth() - 11, GetScreenHeight()), Rect(0, 0, GetScreenWidth() - 12, GetScreenHeight()));
 
 	// Initialize Panels
-	imagePanel.Init(L"IMAGE", Vec2(11, 8), Rect(GetScreenWidth() - 11, 0, GetScreenWidth() - 1, 7), 0x0070);
-	infoPanel.Init(L"INFO", Vec2(11, 9), Rect(GetScreenWidth() - 11, 8, GetScreenWidth() - 1, 16), 0x0070, glyph, fgColor, bgColor, imageName);
-	toolPanel.Init(L"TOOLS", Vec2(11, 17), Rect(GetScreenWidth() - 11, 17, GetScreenWidth() - 1, 33), 0x0070, tool);
+	imagePanel.Init(L"IMAGE", Vec2(11, 7), Rect(GetScreenWidth() - 11, 0, GetScreenWidth() - 1, 6), 0x0070);
+	infoPanel.Init(L"INFO", Vec2(11, 9), Rect(GetScreenWidth() - 11, 7, GetScreenWidth() - 1, 15), 0x0070, glyph, fgColor, bgColor, imageName);
+	toolPanel.Init(L"TOOLS", Vec2(11, 18), Rect(GetScreenWidth() - 11, 16, GetScreenWidth() - 1, 33), 0x0070, tool);
 	glyphPanel.Init(L"GLYPHS", Vec2(11, 20), Rect(GetScreenWidth() - 11, 34, GetScreenWidth() - 1, 53), 0x0070, glyph);
 	palettePanel.Init(L"PALETTE", Vec2(11, 6), Rect(GetScreenWidth() - 11, 54, GetScreenWidth() - 1, 59), 0x0070, fgColor, bgColor);
+
+	// Initialize Shortcuts Panel
+	shortcutsPanel.Init(L"SHORTCUTS", Vec2(30, 30), Rect(GetScreenWidth() - 42, 0, GetScreenWidth() - 12, 29), 0x0070);
 
 	// Initialize Input Panels
 	NewImageNamePanel.Init(L"IMAGE NAME", Vec2(14, 3), Rect((GetScreenWidth() - 11) / 2 - 7, GetScreenHeight() / 2 - 3, (GetScreenWidth() - 11) / 2 + 6, GetScreenHeight() / 2 - 1), 0x0070);
@@ -49,6 +52,14 @@ void Paint::OnUpdate() {
 			Load(SavedImageNamePanel.value);
 			SavedImageNamePanel.value = "";
 		}
+		return;
+	}
+
+	// Freeze Elements if Shortcuts Panel is visible
+	if (shortcutsPanel.active) {
+		shortcutsPanel.Update(*this);
+		if (KeyReleased(VK_ESCAPE))
+			shortcutsPanel.Hide(*this);
 		return;
 	}
 
@@ -90,6 +101,10 @@ void Paint::CheckMouseInput() {
 			switch (tool) {
 			case TOOL::Pencil:
 				canvas.Draw(mousePosition, glyph, fgColor | bgColor);
+				break;
+
+			case TOOL::Eraser:
+				canvas.Draw(mousePosition, EMPTY_GLYPH, 0x0000);
 				break;
 
 			case TOOL::Bucket:
@@ -194,31 +209,21 @@ void Paint::DrawBlueprints() {
 }
 
 void Paint::CheckKeyboardInput() {
-	// Clear Canvas
-	if (KeyReleased('C'))
-		ClearCanvas();
+	// New Image
+	if (KeyPressed(VK_CONTROL) && KeyReleased('N'))
+		New();
 
-	// Change Tools
-	if (KeyReleased('P'))
-		ChangeTool(TOOL::Pencil);
-	if (KeyReleased('L'))
-		ChangeTool(TOOL::Line);
-	if (KeyReleased('R'))
-		ChangeTool(TOOL::Rectangle);
-	if (KeyReleased('E'))
-		ChangeTool(TOOL::Ellipse);
-	if (KeyReleased('B'))
-		ChangeTool(TOOL::Bucket);
+	// Save Image
+	if (KeyPressed(VK_CONTROL) && KeyReleased('S'))
+		Save();
 
-	// Change Colors
-	if (KeyReleased(VK_OEM_6)) // Key: ]
-		NextFGColor();
-	if (KeyReleased(VK_OEM_4)) // Key: [
-		PreviousFGColor();
-	if (KeyReleased(VK_OEM_7)) // Key: '
-		NextBGColor();
-	if (KeyReleased(VK_OEM_1)) // Key: ;
-		PreviousBGColor();
+	// Load Image
+	if (KeyPressed(VK_CONTROL) && KeyReleased('O'))
+		Load("");
+
+	// Close App
+	if (KeyPressed(VK_CONTROL) && KeyReleased('Q'))
+		Close();
 
 	// Change Font Size
 	if (KeyReleased(VK_OEM_PLUS) || KeyReleased(VK_ADD))          // Key: +
@@ -226,9 +231,51 @@ void Paint::CheckKeyboardInput() {
 	if (KeyReleased(VK_OEM_MINUS) || KeyReleased(VK_SUBTRACT))    // Key: -
 		ChangeFontSize(GetFontSize().x - 1, GetFontSize().y - 1);
 
-	// Quit App
-	if (KeyReleased('Q'))
-		Close();
+	// Switch Colors
+	if (KeyReleased(VK_UP))
+		NextFGColor();
+	if (KeyReleased(VK_DOWN))
+		PreviousFGColor();
+	if (KeyReleased(VK_RIGHT))
+		NextBGColor();
+	if (KeyReleased(VK_LEFT))
+		PreviousBGColor();
+
+	// Undo
+	if (KeyPressed(VK_CONTROL) && KeyReleased('Z'))
+		Undo();
+
+	// Redo
+	if (KeyPressed(VK_CONTROL) && KeyReleased('Y'))
+		Redo();
+
+	// Change Tools
+	if (KeyReleased('P'))
+		ChangeTool(TOOL::Pencil);
+	if (KeyReleased('E'))
+		ChangeTool(TOOL::Eraser);
+	if (KeyReleased('L'))
+		ChangeTool(TOOL::Line);
+	if (KeyReleased('R'))
+		ChangeTool(TOOL::Rectangle);
+	if (KeyReleased('O'))
+		ChangeTool(TOOL::Ellipse);
+	if (KeyReleased('B'))
+		ChangeTool(TOOL::Bucket);
+	if (KeyReleased(VK_LSHIFT))
+		ChangeTool(TOOL::Picker);
+
+	// Copy
+	if (KeyPressed(VK_CONTROL) && KeyReleased('C'))
+		ChangeTool(TOOL::Copy);
+
+	// Paste
+	if (KeyPressed(VK_CONTROL) && KeyReleased('V'))
+		ChangeTool(TOOL::Paste);
+
+	// Clear Canvas
+	if (!KeyPressed(VK_CONTROL) && KeyReleased('C'))
+		ClearCanvas();
 }
 
 void Paint::New() {
@@ -278,6 +325,13 @@ void Paint::Load(std::string imageName) {
 	canvas.Load(fin);
 
 	fin.close();
+}
+
+void Paint::Shortcuts() {
+	if (!shortcutsPanel.active)
+		shortcutsPanel.Show();
+	else
+		shortcutsPanel.Hide(*this);
 }
 
 void Paint::Undo() {
@@ -359,4 +413,7 @@ void Paint::PreviousBGColor() {
 
 void Paint::ClearCanvas() {
 	canvas.Clear();
+
+	// Update Timeline
+	canvas.AddTimePoint();
 }

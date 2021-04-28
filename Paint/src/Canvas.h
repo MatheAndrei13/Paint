@@ -15,7 +15,7 @@ class Canvas {
 	using TimePoint = struct { std::set<Pixel> oldState, newState; };
 
 	std::deque<TimePoint> timeline;
-	std::deque<TimePoint>::iterator currentTimePoint;
+	short timePointIdx;
 	TimePoint tempTimePoint;
 
 	const short maxNumOfTimePoints = 20;

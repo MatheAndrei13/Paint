@@ -216,30 +216,31 @@ void ConsoleApp::Run() {
 
 	// Start App Loop
 	while (running) {
-		// Start Frame Timer
-		auto startFrameTime = std::chrono::high_resolution_clock::now();
+		if (consoleWindow == GetForegroundWindow()) {
+			// Start Frame Timer
+			auto startFrameTime = std::chrono::high_resolution_clock::now();
 
-		// Get Input
-		if (consoleWindow == GetForegroundWindow())
+			// Get Input
 			GetInput();
 
-		// OnUpdate
-		OnUpdate();
+			// OnUpdate
+			OnUpdate();
 
-		// Draw to Console Screen Buffer
-		if (updateBuffer) {
-			WriteConsoleOutput(handleOut, screenBuffer, screenSize, { 0, 0 }, &windowSize);
-			updateBuffer = false;
+			// Draw to Console Screen Buffer
+			if (updateBuffer) {
+				WriteConsoleOutput(handleOut, screenBuffer, screenSize, { 0, 0 }, &windowSize);
+				updateBuffer = false;
+			}
+
+			// Update Title
+			std::wstring title = appName + L" - FPS: " + std::to_wstring((short)(round(1 / deltaTime)));
+			SetConsoleTitle(title.c_str());
+
+			// Stop Frame Timer
+			auto endFrameTime = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<float> frameTime = endFrameTime - startFrameTime;
+			deltaTime = frameTime.count();
 		}
-
-		// Update Title
-		std::wstring title = appName + L" - FPS: " + std::to_wstring((short)(round(1 / deltaTime)));
-		SetConsoleTitle(title.c_str());
-
-		// Stop Frame Timer
-		auto endFrameTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float> frameTime = endFrameTime - startFrameTime;
-		deltaTime = frameTime.count();
 	}
 }
 
