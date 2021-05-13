@@ -274,7 +274,7 @@ void Paint::CheckKeyboardInput() {
 		ChangeTool(TOOL::Paste);
 
 	// Clear Canvas
-	if (!KeyPressed(VK_CONTROL) && KeyReleased('C'))
+	if (KeyPressed(VK_CONTROL) && KeyReleased('X'))
 		ClearCanvas();
 }
 
