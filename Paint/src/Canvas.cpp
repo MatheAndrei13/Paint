@@ -389,22 +389,26 @@ void Canvas::Selection(Vec2 start, Vec2 end, Paint& app) {
 	}
 
 	for (short x = start.x; x <= end.x; ++x) {
-		if (inBounds(Vec2(x, start.y)))
+		if (inBounds(Vec2(x, start.y - 1)))
 			app.SetPixel(Vec2(x, start.y - 1), L'\u2500', 0x000F);
-		if (inBounds(Vec2(x, end.y)))
+		if (inBounds(Vec2(x, end.y + 1)))
 			app.SetPixel(Vec2(x, end.y + 1), L'\u2500', 0x000F);
 	}
 	for (short y = start.y; y <= end.y; ++y) {
-		if (inBounds(Vec2(start.x, y)))
+		if (inBounds(Vec2(start.x - 1, y)))
 			app.SetPixel(Vec2(start.x - 1, y), L'\u2502', 0x000F);
-		if (inBounds(Vec2(end.x, y)))
+		if (inBounds(Vec2(end.x + 1, y)))
 			app.SetPixel(Vec2(end.x + 1, y), L'\u2502', 0x000F);
 	}
 
-	app.SetPixel(Vec2(start.x - 1, start.y - 1), L'\u250c', 0x000F);
-	app.SetPixel(Vec2(end.x + 1, start.y - 1), L'\u2510', 0x000F);
-	app.SetPixel(Vec2(start.x - 1, end.y + 1), L'\u2514', 0x000F);
-	app.SetPixel(Vec2(end.x + 1, end.y + 1), L'\u2518', 0x000F);
+	if (inBounds(Vec2(start.x - 1, start.y - 1)))
+		app.SetPixel(Vec2(start.x - 1, start.y - 1), L'\u250c', 0x000F);
+	if (inBounds(Vec2(end.x + 1, start.y - 1)))
+		app.SetPixel(Vec2(end.x + 1, start.y - 1), L'\u2510', 0x000F);
+	if (inBounds(Vec2(start.x - 1, end.y + 1)))
+		app.SetPixel(Vec2(start.x - 1, end.y + 1), L'\u2514', 0x000F);
+	if (inBounds(Vec2(end.x + 1, end.y + 1)))
+		app.SetPixel(Vec2(end.x + 1, end.y + 1), L'\u2518', 0x000F);
 
 	texture.update = true;
 }

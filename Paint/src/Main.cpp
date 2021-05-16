@@ -4,7 +4,7 @@
 
 int main() {
 	COORD appSize = { 120, 60 };
-	COORD fontSize = { 12, 12 };
+	COORD fontSize = { 8, 8 };
 
 	AddFontResourceA("D:/User/MyProjects/Visual Studio Projects/Paint/Paint/resources/fonts/Square Mono.ttf");
 
