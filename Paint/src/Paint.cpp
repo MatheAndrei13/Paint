@@ -381,6 +381,7 @@ void Paint::NextFGColor() {
 	else
 		fgColor++;
 
+	infoPanel.ChangeFGColor(fgColor);
 	palettePanel.ChangeFGColor(fgColor);
 }
 
@@ -390,6 +391,7 @@ void Paint::PreviousFGColor() {
 	else
 		fgColor--;
 
+	infoPanel.ChangeFGColor(fgColor);
 	palettePanel.ChangeFGColor(fgColor);
 }
 
@@ -399,6 +401,7 @@ void Paint::NextBGColor() {
 	else
 		bgColor += 0x0010;
 
+	infoPanel.ChangeBGColor(bgColor);
 	palettePanel.ChangeBGColor(bgColor);
 }
 
@@ -408,6 +411,7 @@ void Paint::PreviousBGColor() {
 	else
 		bgColor -= 0x0010;
 
+	infoPanel.ChangeBGColor(bgColor);
 	palettePanel.ChangeBGColor(bgColor);
 }
 
